@@ -307,6 +307,7 @@ const applyExistingHighlights = (annotations) => {
     annotations.forEach(annotation => {
         // 1. Find all text nodes that contain the flagged text
         const textNodes = findTextNodes(document.body, annotation.text);
+        console.log (textNodes);
 
         textNodes.forEach(node => {
             // 2. Split the text node and apply the highlight
@@ -342,7 +343,7 @@ function findTextNodes(root, searchText) {
 // Helper function: Split text node and apply highlight
 function highlightTextNode(textNode, searchText, credibilityScore) {
     const span = document.createElement('span');
-    const hue = (1 - credibilityScore) * 120; // Correct hue calculation
+    const hue = (1 - credibilityScore) * 120;
     const saturation = 100;
     const lightness = 75;
 
@@ -351,23 +352,13 @@ function highlightTextNode(textNode, searchText, credibilityScore) {
     span.classList.add('credibility-highlight');
     span.dataset.originalText = searchText; // Store original text
 
-    const startIndex = textNode.nodeValue.indexOf(searchText);
-    const endIndex = startIndex + searchText.length;
-    const before = textNode.nodeValue.substring(0, startIndex);
-    const after = textNode.nodeValue.substring(endIndex);
-
-    // Insert 'before' text
-    textNode.parentNode.insertBefore(document.createTextNode(before), textNode);
-    // Insert highlighted span
-    textNode.parentNode.insertBefore(span, textNode);
-    span.appendChild(document.createTextNode(searchText));
-    // Replace original text node with 'after' text
-    textNode.nodeValue = after;
+    // --- KEY PART: Replace the ENTIRE text node content ---
+    textNode.parentNode.replaceChild(span, textNode);
+    span.textContent = searchText; // Set span content
 
     addContextMenu(span); // Add context menu
     return span;
 }
-
 const newVideoLoaded = async () => {
     // Fetch annotations and apply highlights
     const annotations = await fetchAnnotations(window.location.href);
