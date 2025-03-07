@@ -102,32 +102,98 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     (async () => {
       try {
-        const response = await fetch('http://localhost:3000/flagText', {
+        // Step 1: Flag the text
+        const flagResponse = await fetch('http://localhost:3000/flagText', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: selectedText, website: pageURL, userId }),
         });
 
-        if (!response.ok) {
-          console.error("Backend response error:", response.statusText);
-          sendResponse({ error: "Backend request failed: " + response.statusText });
+        if (!flagResponse.ok) {
+          console.error("Backend response error:", flagResponse.statusText);
+          sendResponse({ error: "Backend request failed: " + flagResponse.statusText });
           return;
         }
 
-        const data = await response.json();
-        console.log("Flagged text response:", data);
+        const flagData = await flagResponse.json();
+        console.log("Flagged text response:", flagData);
 
-        if (data.flaggedTextId) {
-          sendResponse({ docId: data.flaggedTextId, credibilityScore: Math.random() });
-        } else {
+        if (!flagData.flaggedTextId) {
           sendResponse({ error: "Invalid response from backend" });
+          return;
         }
+
+        // Step 2: Calculate AI Score
+        const credibilityScore = Math.random(); // Placeholder logic
+        const aiScore = 1 - credibilityScore;
+        const aiResult = credibilityScore > 0.5 ? "Likely True" : "Likely False"; // Example result logic
+
+        console.log("Sending AI verification:", { flaggedTextId: flagData.flaggedTextId, aiResult, aiScore });
+
+        // Step 3: Verify the text with AI
+        const verifyResponse = await fetch('http://localhost:3000/verifyText', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            flaggedTextId: flagData.flaggedTextId,
+            aiResult,
+            aiScore
+          }),
+        });
+
+        if (!verifyResponse.ok) {
+          console.error("AI Verification error:", verifyResponse.statusText);
+          sendResponse({ error: "AI Verification failed: " + verifyResponse.statusText });
+          return;
+        }
+
+        const verifyData = await verifyResponse.json();
+        console.log("AI verification response:", verifyData);
+
+        sendResponse({ docId: flagData.flaggedTextId, credibilityScore, aiScore, aiResult });
       } catch (error) {
         console.error("Fetch error:", error);
-        sendResponse({ error: "Failed to flag text" });
+        sendResponse({ error: "Failed to flag and verify text" });
       }
     })();
 
     return true; // Keep the response channel open for async calls
   }
 });
+
+// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+//   if (request.action === "flagText") {
+//     const { selectedText, pageURL, userId } = request;
+//     console.log("Received flagText request:", selectedText, pageURL, userId);
+
+//     (async () => {
+//       try {
+//         const response = await fetch('http://localhost:3000/flagText', {
+//           method: 'POST',
+//           headers: { 'Content-Type': 'application/json' },
+//           body: JSON.stringify({ text: selectedText, website: pageURL, userId }),
+//         });
+
+//         if (!response.ok) {
+//           console.error("Backend response error:", response.statusText);
+//           sendResponse({ error: "Backend request failed: " + response.statusText });
+//           return;
+//         }
+
+//         const data = await response.json();
+//         console.log("Flagged text response:", data);
+
+//         if (data.flaggedTextId) {
+//           sendResponse({ docId: data.flaggedTextId, credibilityScore: Math.random() });
+//         } else {
+//           sendResponse({ error: "Invalid response from backend" });
+//         }
+//       } catch (error) {
+//         console.error("Fetch error:", error);
+//         sendResponse({ error: "Failed to flag text" });
+//       }
+//     })();
+
+//     return true; // Keep the response channel open for async calls
+//   }
+// });
