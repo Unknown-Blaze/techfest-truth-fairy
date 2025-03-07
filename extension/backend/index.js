@@ -111,6 +111,85 @@ app.get('/getAnnotations', async (req, res) => {
     }
 });
 
+// Endpoint to add a discussion message for a flagged text
+app.post('/addDiscussionMessage', async (req, res) => {
+    const { text, userId, message, url } = req.body;
+
+    // First, check if the flagged text document exists based on the text or url fields
+    const flaggedRef = db.collection('flaggedTexts');
+
+    // Test querying by only the 'text' field first to debug
+    const existingQuery = await flaggedRef.where('text', '==', text).get();
+    console.log("Query by text result:", existingQuery);
+
+    // Test querying by only the 'url' field
+    // const existingQueryByUrl = await flaggedRef.where('url', '==', url).get();
+    // console.log("Query by url result:", existingQueryByUrl);
+
+    // // Check if both fields are provided and then run the query with both
+    // const existingQuery = await flaggedRef
+    //     .where('text', '==', text)
+    //     .where('url', '==', url) // Search by both text and URL
+    //     .get();
+    // console.log("Existing query:", existingQuery);
+
+    if (existingQuery.empty) {
+        return res.status(404).json({ message: "Flagged text not found for this URL" });
+    }
+
+    // Get the flaggedTextId (document ID)
+    const flaggedTextId = existingQuery.docs[0].id;
+    console.log("Flagged text ID:", flaggedTextId);
+
+    // Now, add the message to the discussion thread for the matched flaggedTextId
+    const newMessage = {
+        userId,
+        message,
+        timestamp: admin.firestore.Timestamp.now(),
+    };
+    console.log("New message:", newMessage);
+
+    // Update the flagged text with the new message in the discussion thread
+    await flaggedRef.doc(flaggedTextId).update({
+        discussionThread: admin.firestore.FieldValue.arrayUnion(newMessage),
+        lastUpdated: admin.firestore.Timestamp.now(),
+    });
+    console.log("Discussion thread updated");
+
+    res.json({ message: "Message added to discussion", flaggedTextId });
+});
+
+app.get('/getDiscussionThreads', async (req, res) => {
+    const { text } = req.query; // Get the text parameter from the request
+    console.log("Querying discussion threads for:", text);
+
+    if (!text) {
+        return res.status(400).json({ message: "Text parameter is required" });
+    }
+
+    const flaggedRef = db.collection('flaggedTexts');
+
+    // Query the database to find documents where the text matches the provided text
+    const querySnapshot = await flaggedRef.where('text', '==', text).get();
+
+    // Check if any document matches the text
+    if (querySnapshot.empty) {
+        return res.status(404).json({ message: "No flagged texts found for the given text" });
+    }
+    console.log("Query snapshot:", querySnapshot);
+
+    // Extract the discussion threads from the matched documents
+    const discussionThreads = querySnapshot.docs.map(doc => ({
+        id: doc.id, // Include the document ID for reference
+        discussionThread: doc.data().discussionThread || [] // Get the discussion thread or an empty array if none exists
+    }));
+    console.log("Discussion threads:", discussionThreads.map(thread => thread.discussionThread));
+
+    // Return the list of discussion threads
+    res.json(discussionThreads);
+});
+
+
 
 // Start the Express server
 const PORT = process.env.PORT || 3000;
