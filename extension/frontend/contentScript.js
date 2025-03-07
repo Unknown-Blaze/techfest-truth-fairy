@@ -28,51 +28,92 @@ const hideFlagButton = () => {
 };
 
 // Handle clicks on the "flag" button
-const handleFlagClick = () => {
-    if (selectedText) {
-        console.log("Flagging text:", selectedText);
+// const handleFlagClick = () => {
+//     if (selectedText) {
+//         console.log("Flagging text:", selectedText);
 
-        chrome.runtime.sendMessage(
-            {
-                action: "flagText",
-                selectedText,
-                pageURL: window.location.href,
-                pageTitle: document.title,
-            },
-            (response) => {
-                if (response && response.credibilityScore !== undefined) {
-                    applyHighlight(response.credibilityScore, selectedText); // Pass selectedText
-                } else {
-                    console.error("Error flagging text:", response);
+//         chrome.runtime.sendMessage(
+//             {
+//                 action: "flagText",
+//                 selectedText,
+//                 pageURL: window.location.href,
+//                 pageTitle: document.title,
+//             },
+//             (response) => {
+//                 if (response && response.credibilityScore !== undefined) {
+//                     applyHighlight(response.credibilityScore, selectedText); // Pass selectedText
+//                 } else {
+//                     console.error("Error flagging text:", response);
+//                 }
+//             }
+//         );
+//     }
+//     hideFlagButton();
+// };
+const handleFlagClick = async () => {
+    if (!selectedText) return;
+    console.log("Flagging text:", selectedText);
+
+    try {
+        const response = await new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage(
+                {
+                    action: "flagText",
+                    selectedText,
+                    pageURL: window.location.href,
+                    pageTitle: document.title,
+                    userId: chrome.runtime.id
+                },
+                (response) => {
+                    if (chrome.runtime.lastError) {
+                        console.error("Runtime error:", chrome.runtime.lastError.message);
+                        reject("Runtime error: " + chrome.runtime.lastError.message);
+                    } else if (response?.docId) {
+                        console.log("Flagged text successfully:", response.docId);
+                        resolve(response);
+                    } else if (response?.error) {
+                        console.error("Backend error:", response.error);
+                        reject("Backend error: " + response.error);
+                    } else {
+                        console.error("Unexpected response:", response);
+                        reject("No valid response received");
+                    }
                 }
-            }
-        );
+            );
+        });
+
+        console.log("Response received:", response);
+    } catch (error) {
+        console.error("Error during flagText:", error);
     }
+
     hideFlagButton();
 };
 
+
+
 const handleUnflagClick = (event) => {
     // Get the highlighted span (the parent of the context menu)
-    const span = event.target.closest('.credibility-highlight');
-    if (!span) return; // Safety check
+    // const span = event.target.closest('.credibility-highlight');
+    // if (!span) return; // Safety check
 
-    const textToUnflag = span.textContent; // Get the text content of the span
+    // const textToUnflag = span.textContent; // Get the text content of the span
 
-    chrome.runtime.sendMessage(
-        {
-            action: "unflagText",
-            selectedText: textToUnflag, // Use the text from the span
-            pageURL: window.location.href,
-            pageTitle: document.title,
-        },
-        (response) => {
-            if (response && response.credibilityScore !== undefined) {
-                removeHighlight(span); // Remove the highlight completely
-            } else {
-                console.error("Error unflagging text:", response);
-            }
-        }
-    );
+    // chrome.runtime.sendMessage(
+    //     {
+    //         action: "unflagText",
+    //         selectedText: textToUnflag, // Use the text from the span
+    //         pageURL: window.location.href,
+    //         pageTitle: document.title,
+    //     },
+    //     (response) => {
+    //         if (response && response.credibilityScore !== undefined) {
+    //             removeHighlight(span); // Remove the highlight completely
+    //         } else {
+    //             console.error("Error unflagging text:", response);
+    //         }
+    //     }
+    // );
 };
 
 // Listen for selection changes
@@ -91,66 +132,66 @@ document.addEventListener('mouseup', (event) => {
 
 // Function to apply the highlight color based on the AI score
 const applyHighlight = (credibilityScore, text) => {
-    const selection = window.getSelection();
-    if (selection.rangeCount === 0) return;
-    const range = selection.getRangeAt(0);
-    const span = document.createElement('span');
+    // const selection = window.getSelection();
+    // if (selection.rangeCount === 0) return;
+    // const range = selection.getRangeAt(0);
+    // const span = document.createElement('span');
 
-    const hue = (1 - credibilityScore) * 120;
-    const saturation = 100;
-    const lightness = 75;
+    // const hue = (1 - credibilityScore) * 120;
+    // const saturation = 100;
+    // const lightness = 75;
 
-    span.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-    span.title = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
-    span.classList.add('credibility-highlight');
-    span.dataset.originalText = text; // Store the original text
+    // span.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    // span.title = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
+    // span.classList.add('credibility-highlight');
+    // span.dataset.originalText = text; // Store the original text
 
-    span.addEventListener('contextmenu', (event) => {
-        event.preventDefault();
+    // span.addEventListener('contextmenu', (event) => {
+    //     event.preventDefault();
 
-        let contextMenu = document.getElementById('credibility-context-menu');
-        if (!contextMenu) {
-            contextMenu = document.createElement('div');
-            contextMenu.id = 'credibility-context-menu';
-            contextMenu.classList.add('credibility-context-menu');
+    //     let contextMenu = document.getElementById('credibility-context-menu');
+    //     if (!contextMenu) {
+    //         contextMenu = document.createElement('div');
+    //         contextMenu.id = 'credibility-context-menu';
+    //         contextMenu.classList.add('credibility-context-menu');
 
-            const unflagOption = document.createElement('div');
-            unflagOption.textContent = 'Unflag';
-            unflagOption.classList.add('context-menu-option');
-            unflagOption.addEventListener('click', (event) => {
-                handleUnflagClick(event);
-                hideContextMenu();
-            });
-            contextMenu.appendChild(unflagOption);
+    //         const unflagOption = document.createElement('div');
+    //         unflagOption.textContent = 'Unflag';
+    //         unflagOption.classList.add('context-menu-option');
+    //         unflagOption.addEventListener('click', (event) => {
+    //             handleUnflagClick(event);
+    //             hideContextMenu();
+    //         });
+    //         contextMenu.appendChild(unflagOption);
 
-            const discussOption = document.createElement('div');
-            discussOption.textContent = 'Discuss';
-            discussOption.classList.add('context-menu-option');
-            discussOption.addEventListener('click', () => {
-                showDiscussionPopup(selectedText);
-                hideContextMenu();
-            });
-            contextMenu.appendChild(discussOption);
-            document.body.appendChild(contextMenu);
-        }
+    //         const discussOption = document.createElement('div');
+    //         discussOption.textContent = 'Discuss';
+    //         discussOption.classList.add('context-menu-option');
+    //         discussOption.addEventListener('click', () => {
+    //             showDiscussionPopup(selectedText);
+    //             hideContextMenu();
+    //         });
+    //         contextMenu.appendChild(discussOption);
+    //         document.body.appendChild(contextMenu);
+    //     }
 
-        contextMenu.style.left = `${event.pageX}px`;
-        contextMenu.style.top = `${event.pageY}px`;
-        contextMenu.style.display = 'block';
-    });
+    //     contextMenu.style.left = `${event.pageX}px`;
+    //     contextMenu.style.top = `${event.pageY}px`;
+    //     contextMenu.style.display = 'block';
+    // });
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.credibility-context-menu')) {
-            hideContextMenu();
-        }
-    });
+    // document.addEventListener('click', (e) => {
+    //     if (!e.target.closest('.credibility-context-menu')) {
+    //         hideContextMenu();
+    //     }
+    // });
 
-    try {
-        range.surroundContents(span);
-        selection.removeAllRanges();
-    } catch (e) {
-        console.error("Error surrounding contents:", e);
-    }
+    // try {
+    //     range.surroundContents(span);
+    //     selection.removeAllRanges();
+    // } catch (e) {
+    //     console.error("Error surrounding contents:", e);
+    // }
 };
 
 // Remove the highlight completely, regardless of the score
@@ -232,35 +273,35 @@ const addComment = () => {
 };
 
 const checkPageTitle = async () => {
-    const pageTitle = document.title;
+    // const pageTitle = document.title;
 
-    chrome.runtime.sendMessage({
-        action: "flagText",
-        selectedText: pageTitle,
-        pageURL: window.location.href,
-        pageTitle: pageTitle
-    }, (response) => {
+    // chrome.runtime.sendMessage({
+    //     action: "flagText",
+    //     selectedText: pageTitle,
+    //     pageURL: window.location.href,
+    //     pageTitle: pageTitle
+    // }, (response) => {
 
-        if (response && response.credibilityScore !== undefined) {
-            console.log("Title credibility score:", response.credibilityScore);
-            const titleElement = document.querySelector('title');
-            if (titleElement) {
-                const span = document.createElement('span');
-                const hue = (1 - response.credibilityScore) * 120;
-                const saturation = 100;
-                const lightness = 75;
+    //     if (response && response.credibilityScore !== undefined) {
+    //         console.log("Title credibility score:", response.credibilityScore);
+    //         const titleElement = document.querySelector('title');
+    //         if (titleElement) {
+    //             const span = document.createElement('span');
+    //             const hue = (1 - response.credibilityScore) * 120;
+    //             const saturation = 100;
+    //             const lightness = 75;
 
-                span.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-                span.style.color = 'black'
-                span.title = `Credibility Score: ${Math.round((1 - response.credibilityScore) * 100)}%`;
-                span.appendChild(document.createTextNode(titleElement.textContent));
-                titleElement.textContent = '';
-                titleElement.appendChild(span);
-            }
-        } else {
-            console.error("Error checking title:", response);
-        }
-    });
+    //             span.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    //             span.style.color = 'black'
+    //             span.title = `Credibility Score: ${Math.round((1 - response.credibilityScore) * 100)}%`;
+    //             span.appendChild(document.createTextNode(titleElement.textContent));
+    //             titleElement.textContent = '';
+    //             titleElement.appendChild(span);
+    //         }
+    //     } else {
+    //         console.error("Error checking title:", response);
+    //     }
+    // });
 };
 
-checkPageTitle();
+//checkPageTitle();

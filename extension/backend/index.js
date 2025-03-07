@@ -30,6 +30,7 @@ db.collection('test')
 // Endpoint to flag text
 app.post('/flagText', async (req, res) => {
     const { text, website, userId } = req.body;
+    console.log("Received flagText request:", text, website, userId);
 
     // Check if the text already exists in the database
     const flaggedRef = db.collection('flaggedTexts');
@@ -79,6 +80,19 @@ app.post('/verifyText', async (req, res) => {
 // Endpoint to get annotations based on URL
 app.get('/getAnnotations', async (req, res) => {
     const { url } = req.query;
+    if (!url) {
+        return res.status(400).json({ message: "Missing URL parameter" });
+    }
+
+    console.log("Querying annotations for:", url);
+
+    // Print all stored URLs in 'webpages' for debugging
+    const allDocs = await db.collection('flaggedTexts').get();
+    console.log("All Docs:", allDocs);
+
+    allDocs.forEach(doc => console.log("Stored URL:", doc.data().url));
+
+    // Fetch matching URL
     const webpageRef = db.collection('webpages').where('url', '==', url);
     const snapshot = await webpageRef.get();
 
@@ -89,6 +103,7 @@ app.get('/getAnnotations', async (req, res) => {
     const data = snapshot.docs.map(doc => doc.data());
     res.json(data);
 });
+
 
 // Start the Express server
 const PORT = process.env.PORT || 3000;
