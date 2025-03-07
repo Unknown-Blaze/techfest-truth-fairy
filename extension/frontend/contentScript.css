@@ -1,0 +1,56 @@
+/* contentScript.css */
+#flag-text-button {
+    position: absolute;
+    z-index: 10000;
+    display: none; /* Initially hidden */
+    cursor: pointer;
+    padding: 5px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+  .veracity-highlight {
+      /* Basic highlight style, color will be set inline */
+      cursor: pointer;
+  }
+  .veracity-context-menu{
+      position: absolute;
+      background-color: white;
+      border: 1px solid #ccc;
+      padding: 5px;
+      z-index: 10001;
+      display: none;
+  }
+  
+  .context-menu-option {
+      padding: 5px 10px;
+      cursor: pointer;
+  }
+  
+  .context-menu-option:hover {
+      background-color: #f0f0f0;
+  }
+  .discussion-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      border: 1px solid #ccc;
+      padding: 20px;
+      z-index: 10002;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 80%; /* Responsive width */
+      max-height: 80vh;
+      overflow-y: auto;
+  
+  }
+  .comment {
+      border-bottom: 1px solid #eee;
+      padding: 5px 0;
+      margin-bottom: 5px;
+  }
+  
+  #close-popup{
+      float: right;
+  }

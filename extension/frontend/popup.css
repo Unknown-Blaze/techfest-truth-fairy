@@ -1,0 +1,10 @@
+body {
+  width: 200px; /* Adjust as needed */
+  font-family: sans-serif;
+}
+
+#color-spectrum {
+  width: 100%;
+  height: 20px;
+  border: 1px solid #ccc;
+}
