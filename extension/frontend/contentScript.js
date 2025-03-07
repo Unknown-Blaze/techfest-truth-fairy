@@ -282,9 +282,10 @@ const checkPageTitle = async () => {
 const fetchAnnotations = async (url) => {
     try {
         // Encode the URL
-        console.log("Fetching annotations for URL:", url);
+        const encodedUrl = encodeURIComponent(url);
+        console.log("Fetching annotations for URL:", encodedUrl);
 
-        const response = await fetch(`http://localhost:3000/getAnnotations?url=${url}`);
+        const response = await fetch(`${API_BASE_URL}/getAnnotations?url=${encodedUrl}`);
         if (!response.ok) {
             if (response.status === 400) {
                 return []; // No URL parameter, it's fine
@@ -307,7 +308,7 @@ const applyExistingHighlights = (annotations) => {
     annotations.forEach(annotation => {
         // 1. Find all text nodes that contain the flagged text
         const textNodes = findTextNodes(document.body, annotation.text);
-        console.log (textNodes);
+        console.log("TextNodes found:", textNodes) //log
 
         textNodes.forEach(node => {
             // 2. Split the text node and apply the highlight
@@ -322,14 +323,23 @@ function findTextNodes(root, searchText) {
     const walker = document.createTreeWalker(
         root,
         NodeFilter.SHOW_TEXT,
-        { acceptNode: function(node) {
-            // Ignore text inside script/style/noscript tags, and hidden elements
-            if (node.parentNode && /^(SCRIPT|STYLE|NOSCRIPT)$/.test(node.parentNode.nodeName) || node.parentElement.offsetParent === null ) {
-                return NodeFilter.FILTER_REJECT;
+        {
+            acceptNode: function(node) {
+                if (
+                    node.parentNode &&
+                    /^(SCRIPT|STYLE|NOSCRIPT)$/.test(node.parentNode.nodeName) ||
+                    node.parentElement.offsetParent === null
+                ) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+
+                // Normalize spaces and case for comparison
+                const nodeText = node.nodeValue.trim().replace(/\s+/g, ' ').toLowerCase();
+                const cleanSearchText = searchText.trim().replace(/\s+/g, ' ').toLowerCase();
+
+                return nodeText.includes(cleanSearchText) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
             }
-            // Accept the node if it includes the search text
-            return node.nodeValue.includes(searchText) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
-        }},
+        },
         false
     );
 
@@ -340,25 +350,43 @@ function findTextNodes(root, searchText) {
     return textNodes;
 }
 
+
 // Helper function: Split text node and apply highlight
 function highlightTextNode(textNode, searchText, credibilityScore) {
+    const parent = textNode.parentNode;
+    const nodeText = textNode.nodeValue;
+    const index = nodeText.toLowerCase().indexOf(searchText.toLowerCase());
+
+    if (index === -1) return; // Avoid processing if text not found
+
+    // Split the text node into before, match, and after parts
+    const beforeText = nodeText.substring(0, index);
+    const matchText = nodeText.substring(index, index + searchText.length);
+    const afterText = nodeText.substring(index + searchText.length);
+
+    // Create a new span element for highlighting
     const span = document.createElement('span');
     const hue = (1 - credibilityScore) * 120;
     const saturation = 100;
     const lightness = 75;
-
     span.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
     span.title = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
     span.classList.add('credibility-highlight');
-    span.dataset.originalText = searchText; // Store original text
+    span.dataset.originalText = matchText; // Store original text
+    span.textContent = matchText;
 
-    // --- KEY PART: Replace the ENTIRE text node content ---
-    textNode.parentNode.replaceChild(span, textNode);
-    span.textContent = searchText; // Set span content
+    addContextMenu(span); // Keep the context menu functionality
 
-    addContextMenu(span); // Add context menu
-    return span;
+    // Replace the text node with the split parts
+    const fragment = document.createDocumentFragment();
+    if (beforeText) fragment.appendChild(document.createTextNode(beforeText));
+    fragment.appendChild(span);
+    if (afterText) fragment.appendChild(document.createTextNode(afterText));
+
+    parent.replaceChild(fragment, textNode);
 }
+
+
 const newVideoLoaded = async () => {
     // Fetch annotations and apply highlights
     const annotations = await fetchAnnotations(window.location.href);
