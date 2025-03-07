@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "Misinformation Fighter",
+  "name": "Truth Fairy",
   "version": "1.0",
   "description": "An extension to combat misinformation using AI.",
   "permissions": [
     "activeTab",
     "storage",
     "scripting",
-    "contextMenus"  
+    "contextMenus"
   ],
   "background": {
     "service_worker": "background.js"
@@ -16,7 +16,7 @@
     {
       "matches": ["<all_urls>"],
       "js": ["contentScript.js"],
-      "css": ["contentScript.css"] 
+      "css": ["contentScript.css"]
     }
   ],
   "action": {

@@ -9,19 +9,18 @@
     border: 1px solid #ccc;
     border-radius: 3px;
   }
-  .veracity-highlight {
-      /* Basic highlight style, color will be set inline */
-      cursor: pointer;
-  }
-  .veracity-context-menu{
-      position: absolute;
-      background-color: white;
-      border: 1px solid #ccc;
-      padding: 5px;
-      z-index: 10001;
-      display: none;
-  }
-  
+  .credibility-highlight { /*Renamed this*/
+    /* Basic highlight style, color will be set inline */
+    cursor: pointer;
+}
+    .credibility-context-menu{ /*Renamed this*/
+        position: absolute;
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 5px;
+        z-index: 10001;
+        display: none;
+    }
   .context-menu-option {
       padding: 5px 10px;
       cursor: pointer;
