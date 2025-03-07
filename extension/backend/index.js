@@ -6,6 +6,10 @@ const app = express();
 // Initialize Firebase Admin with your service account credentials
 const serviceAccount = require('./firebase_credentials.json');
 
+const cors = require('cors')
+
+app.use(cors());
+
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: "https://truthfairy-86766.firebaseio.com"
@@ -86,22 +90,25 @@ app.get('/getAnnotations', async (req, res) => {
 
     console.log("Querying annotations for:", url);
 
-    // Print all stored URLs in 'webpages' for debugging
-    const allDocs = await db.collection('flaggedTexts').get();
-    console.log("All Docs:", allDocs);
+    try {
+        const snapshot = await db.collection('flaggedTexts').where('website', '==', url).get();
+        if (snapshot.empty) {
+            return res.json({ message: "No annotations found" });
+        }
 
-    allDocs.forEach(doc => console.log("Stored URL:", doc.data().url));
+        const flaggedTexts = snapshot.docs.map(doc => ({
+            id: doc.id,
+            text: doc.data().text,
+            AI_verification: doc.data().AI_verification,
+            flaggedBy: doc.data().flaggedBy
+        }));
+        console.log("Flagged texts:", flaggedTexts);
 
-    // Fetch matching URL
-    const webpageRef = db.collection('flaggedTexts').where('website', '==', url);
-    const snapshot = await webpageRef.get();
-
-    if (snapshot.empty) {
-        return res.json({ message: "No annotations found" });
+        res.json(flaggedTexts);
+    } catch (error) {
+        console.error("Error retrieving annotations:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
-
-    const data = snapshot.docs.map(doc => doc.data());
-    res.json(data);
 });
 
 
