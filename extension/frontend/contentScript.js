@@ -606,107 +606,6 @@ const displayDiscussionThread = (discussionThread, discussionContainer) => {
 
     console.log("Discussion thread displayed successfully.");
 };
-// const showDiscussionPopup = async (text) => {
-//     let popup = document.getElementById('discussion-popup');
-
-//     if (!popup) {
-//         // Create the popup if it doesn't exist
-//         popup = document.createElement('div');
-//         popup.id = 'discussion-popup';
-//         popup.classList.add('discussion-popup');
-
-//         // Add a close button to hide the popup
-//         const closeButton = document.createElement('button');
-//         closeButton.textContent = 'Close';
-//         closeButton.addEventListener('click', () => {
-//             popup.style.display = 'none';
-//         });
-//         popup.appendChild(closeButton);
-
-//         // Container to hold discussion messages
-//         const discussionContainer = document.createElement('div');
-//         discussionContainer.id = 'discussion-container';
-//         popup.appendChild(discussionContainer);
-
-//         const inputMessage = document.createElement('textarea');
-//         inputMessage.id = 'discussion-input';
-//         inputMessage.placeholder = 'Add your message...';
-//         popup.appendChild(inputMessage);
-
-//         const sendButton = document.createElement('button');
-//         sendButton.textContent = 'Send Message';
-//         sendButton.addEventListener('click', async () => {
-//             const url = window.location.href;
-//             await sendMessage(text, inputMessage.value, discussionContainer, url);
-//         });
-//         popup.appendChild(sendButton);
-
-//         document.body.appendChild(popup);
-//     }
-
-//     // Fetch existing discussion threads
-//     const response = await fetch(`http://localhost:3000/getDiscussionThreads?text=${text}`);
-//     const discussionThreads = await response.json();
-//     console.log("Raw discussion threads:", discussionThreads);
-
-//     // Flatten all discussion messages
-//     const allMessages = discussionThreads.flatMap(thread => thread.discussionThread);
-//     console.log("Flattened messages:", allMessages);
-
-//     // Display all messages
-//     displayDiscussionThread(allMessages, discussionContainer);
-// };
-
-// const displayDiscussionThread = (discussionThread, discussionContainer) => {
-//     console.log("Received discussion thread:", discussionThread);
-
-//     // Ensure discussionContainer exists
-//     if (!discussionContainer) {
-//         console.error("Error: discussionContainer is null or undefined.");
-//         return;
-//     }
-
-//     // Clear previous messages
-//     discussionContainer.innerHTML = '';
-
-//     if (!discussionThread || discussionThread.length === 0) {
-//         const noMessages = document.createElement('div');
-//         noMessages.textContent = 'No messages yet.';
-//         discussionContainer.appendChild(noMessages);
-//         return;
-//     }
-
-//     discussionThread.forEach(messageObj => {
-//         const messageElement = document.createElement('div');
-//         messageElement.classList.add('message');
-
-//         const userId = messageObj.userId || 'Unknown User';
-//         const message = messageObj.message || 'No message content';
-
-//         const userElement = document.createElement('div');
-//         userElement.classList.add('user');
-//         userElement.textContent = `User: ${userId}`;
-
-//         const messageText = document.createElement('div');
-//         messageText.classList.add('message-text');
-//         messageText.textContent = message;
-
-//         const timestampElement = document.createElement('div');
-//         timestampElement.classList.add('timestamp');
-//         const timestamp = messageObj.timestamp ? new Date(messageObj.timestamp).toLocaleString() : 'No timestamp';
-//         timestampElement.textContent = timestamp;
-
-//         messageElement.appendChild(userElement);
-//         messageElement.appendChild(messageText);
-//         messageElement.appendChild(timestampElement);
-
-//         discussionContainer.appendChild(messageElement);
-//     });
-
-//     console.log("Discussion thread displayed successfully.");
-// };
-
-
 
 const sendMessage = async (text, message, discussionContainer) => {
     if (!message.trim()) return;
@@ -730,8 +629,6 @@ const sendMessage = async (text, message, discussionContainer) => {
         console.error("Error sending message:", error);
     }
 };
-
-
 
 // Listen for URL changes (important for single-page applications)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
