@@ -93,7 +93,7 @@ app.get('/getAnnotations', async (req, res) => {
     allDocs.forEach(doc => console.log("Stored URL:", doc.data().url));
 
     // Fetch matching URL
-    const webpageRef = db.collection('webpages').where('url', '==', url);
+    const webpageRef = db.collection('flaggedTexts').where('website', '==', url);
     const snapshot = await webpageRef.get();
 
     if (snapshot.empty) {

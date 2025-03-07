@@ -1,6 +1,6 @@
-// background.js
+// // background.js
 
-// Example: Listen for messages from the content script
+// // Example: Listen for messages from the content script
 // chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 //   if (request.action === "flagText") {
 //     // 1. Receive data from content script (selectedText, pageURL, etc.)
@@ -96,14 +96,12 @@
 // Firebase setup is removed since it's handled by the backend
 // Listen for messages from the content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log("Received message from content script:", request, sender, sendResponse);
   if (request.action === "flagText") {
     const { selectedText, pageURL, userId } = request;
     console.log("Received flagText request:", selectedText, pageURL, userId);
 
     (async () => {
       try {
-        console.log("Sending flagText request to backend...");
         const response = await fetch('http://localhost:3000/flagText', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -120,7 +118,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log("Flagged text response:", data);
 
         if (data.flaggedTextId) {
-          sendResponse({ docId: data.flaggedTextId });
+          sendResponse({ docId: data.flaggedTextId, credibilityScore: Math.random() });
         } else {
           sendResponse({ error: "Invalid response from backend" });
         }
