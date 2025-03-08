@@ -6,6 +6,10 @@ We're manufacturing a browser extension that allows users to flag what they beli
 - If the users flag something that doesn't seem to be misinformation, we need something for that as well right? We could maybe highlight that text region temporarily green to show there's no misinformation detected, and perhaps even a little textual pop-up reaffirming that it's true with some additional information on the topic they highlighted, maybe even with links to learn more.
 - Fact-checking directly applied to comments within the forum as well, just to ensure that only factual statements are being spread, we don’t want to facilitate misinformation as well in the forums.
 
+## Setup environment
+conda create --name techfest python=3.12
+conda activate techfest
+
 
 ## Link for pretrained weights
 https://drive.google.com/file/d/1wMnUPwN_aSq9ay0qvNaWvzGYFUKfcqbV/view?usp=sharing
