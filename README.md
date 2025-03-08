@@ -12,4 +12,4 @@ conda create --name truth_fairy python=3.12
 conda activate truth_fairy
 
 ## Link for pretrained weights
-[https://drive.google.com/file/d/1wMnUPwN_aSq9ay0qvNaWvzGYFUKfcqbV/view?usp=sharing](https://drive.google.com/file/d/1MIkgpquQK0ZNi3-ZrfZvSmtpC0kX4NiQ/view?usp=sharing)
+https://drive.google.com/drive/folders/16bI7-2H2FaCOE0FTw4ZaRdpsJIzT4EjZ?usp=sharing
