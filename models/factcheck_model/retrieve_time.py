@@ -24,7 +24,9 @@ def get_publish_date(url):
         print(data)
         if isinstance(data, dict):
             if 'mainEntity' in data:
-                return data['mainEntity']['dateModified']
+                data = data['mainEntity']
+                if 'dateModified' in data:
+                    return data['mainEntity']['dateModified']
             elif 'dateModified' in data:
                 return data['dateModified']
         elif isinstance(data, list):
@@ -35,7 +37,3 @@ def get_publish_date(url):
             return data['dateModified']
     
     return None  # Return None if no date is found
-
-# url = 'https://x.com/TheNBACentel/status/1894550791626657818/'
-# publish_date = get_publish_date(url)
-# print(publish_date)

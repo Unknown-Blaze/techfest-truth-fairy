@@ -19,7 +19,3 @@ def search_brave(query):
     else:
         print(f"Error: {response.status_code}")
         return None
-    
-# results = search_brave('Is Biden the U.S. president?')
-# print(results[1])
-# print(results[0]['profile']['url'])

@@ -54,19 +54,18 @@ def fact_check():
 
     # Increase search context to the first five result descriptions returned by the search API
     search_context = "\n".join([result["description"] for result in results[:5]])
-    # timestamp = get_publish_date(url=flagged_url)
+    timestamp = get_publish_date(url=flagged_url)
 
     full_context = (
         "Additional Context:"
         + search_context
         + "\nUser Flagged Text: "
         + flagged_text
-        # +"\nTimestamp:"
-        # + timestamp
-        # + "\nArticle Information was derived from: https://www.nature.com/articles/d41586-025-00609-y"
+        +"\nTimestamp:"
+        + timestamp if timestamp is not None else "N/A"
+        + "\n"
+        + f"Article Information was derived from: {flagged_url}"
     )
-
-    print(full_context)
 
     # Make the API call correctly
     fact_check_completion = client.chat.completions.create(
@@ -77,11 +76,12 @@ def fact_check():
                 "content": "Your function is that of a lie detector. I will pass additional context to inform your decision, followed by user-highlighted annotations of information widely available on the internet."
                 "Users have flagged this text for a possible instance of misinformation. I need you to verify if this information is indeed misinformation or if it's real."
                 "When fact-checking, ensure you cross-reference the flagged statement with multiple trusted and up-to-date sources to verify its validity. Avoid relying on a single source unless absolutely necessary."
-                "For statements regarding facts that can change over time (e.g., rankings, statistics, or leadership positions), always check if the current data contradicts the claim, but also take into account the publication date of the source to assess if the statement was true at the time of publishing. This infomration will be available in the additional context."
+                "For statements regarding facts that can change over time (e.g., rankings, statistics, or leadership positions), always check if the current data contradicts the claim, but also take into account the publication date of the source to assess if the statement was true at the time of publishing."
+                "If the timestamp for the webpage is provided and not N/A, you should check whether the flagged statement is true or false as of the date it was written."
+                "There's a possibility that the user-highlighted text requires context present within the article, hence you will see the webpage linked as well to further influence your decisions."
                 "Your decision should be made after consulting the additional context provided in the prompt, which could possibly influence your final decision."
                 "Even though you consult the context, your focus is purely on validating the user flagged text."
                 "The statements made in the additional context are entirely valid, as they're retrieved from current-day search engines. You should not try to falsify those."
-                "There's a possibility that the user-highlighted text requires context present within the article, hence you will see the webpage linked as well to further influence your decisions."
                 "As of right now, your response should only elicit one of three categories: [Real, Fake, Cannot Verify]."
                 "Cannot verify should especially be used in situations where the highlighted text cannot be factually verified or in and of itself doesn't contain a statement that can be fact checked."
                 "e.g. The user can highlight opinionated text, which should not proceed through your analysis and should be marked as Cannot Verify."
