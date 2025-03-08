@@ -7,9 +7,9 @@ We're manufacturing a browser extension that allows users to flag what they beli
 - Fact-checking directly applied to comments within the forum as well, just to ensure that only factual statements are being spread, we don’t want to facilitate misinformation as well in the forums.
 
 ## Setup environment
-conda create --name techfest python=3.12
+conda create --name truth_fairy python=3.12
 
-conda activate techfest
+conda activate truth_fairy
 
 ## Link for pretrained weights
 https://drive.google.com/file/d/1wMnUPwN_aSq9ay0qvNaWvzGYFUKfcqbV/view?usp=sharing
