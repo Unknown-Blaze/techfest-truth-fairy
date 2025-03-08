@@ -95,13 +95,17 @@ app.get('/getAnnotations', async (req, res) => {
         if (snapshot.empty) {
             return res.json({ message: "No annotations found" });
         }
+        console.log("Annotations found:", snapshot.docs.map(doc => doc.data()));
 
         const flaggedTexts = snapshot.docs.map(doc => ({
             id: doc.id,
             text: doc.data().text,
             AI_verification: doc.data().AI_verification,
-            flaggedBy: doc.data().flaggedBy
-        }));
+            flaggedBy: doc.data().flaggedBy,
+            justification: doc.data().AI_verification.justification,
+        } 
+    ));
+        // console.log(snapshot.docs.AI_verification);
         console.log("Flagged texts:", flaggedTexts);
 
         res.json(flaggedTexts);

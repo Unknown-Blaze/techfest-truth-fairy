@@ -9,28 +9,51 @@
 	border: 1px solid #ccc;
 	border-radius: 3px;
 }
-.credibility-highlight {
-	/*Renamed this*/
-	/* Basic highlight style, color will be set inline */
-	cursor: pointer;
-}
 .credibility-context-menu {
-	/*Renamed this*/
-	position: absolute;
-	background-color: white;
-	border: 1px solid #ccc;
-	padding: 5px;
-	z-index: 10001;
-	display: none;
-}
-.context-menu-option {
-	padding: 5px 10px;
-	cursor: pointer;
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    z-index: 10001;
+    display: none;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    min-width: 200px;
+    align-items: center;
 }
 
-.context-menu-option:hover {
-	background-color: #f0f0f0;
+.context-menu-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 5px;
+    font-size: 14px;
+    align-items: center;
 }
+
+.context-menu-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.context-menu-item:first-child {
+    font-weight: bold;
+}
+
+.context-menu-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    align-items: center;
+}
+
+.context-menu-button:hover {
+    background-color: #0056b3;
+}
+
 .discussion-popup {
 	position: fixed;
 	top: 50%;

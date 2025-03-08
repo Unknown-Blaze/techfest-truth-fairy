@@ -84,7 +84,6 @@ const BACKEND_API_URL = "http://localhost:3000/store_analysis"; // Your backend 
 
 const handleFlagClick = async (event) => {
     if(!selectedText) return;
-
     console.log("Flagging text:", selectedText);
     hideFlagButton();
     showProcessingButton();
@@ -127,9 +126,9 @@ const handleFlagClick = async (event) => {
                             console.error("Runtime error:", chrome.runtime.lastError.message);
                             reject("Runtime error: " + chrome.runtime.lastError.message);
                         } else {
-                            if (response?.credibilityScore !== undefined) {
+                            if (response?.credibilityScore !== undefined && aiData.justification && aiData.sources) {
                                 console.log("Flagged text successfully:", response);
-                                applyHighlight(response.credibilityScore, selectedText);
+                                applyHighlight(response.credibilityScore, aiData.justification, selectedText);
                                 resolve(response);
                             } else {
                                 console.error("Unexpected response:", response);
@@ -185,7 +184,7 @@ const handleFlagClick = async (event) => {
                             reject("Runtime error: " + chrome.runtime.lastError.message);
                         } else if (response?.credibilityScore !== undefined) {
                             console.log("Highlighted text successfully:", response);
-                            applyHighlight(response.credibilityScore, selectedText);
+                            applyHighlight(response.credibilityScore, aiData.justification, selectedText);
                             resolve(response);
                         } else {
                             console.error("Unexpected response:", response);
@@ -204,6 +203,7 @@ const handleFlagClick = async (event) => {
 
 
 };
+
 
 const handleImageFlag = async (imageElement) => {
     console.log("Flagging image:", imageElement.src);
@@ -331,8 +331,40 @@ document.addEventListener('mouseover', (event) => {
     }
 });
 
-// Apply highlight for text
-const applyHighlight = (credibilityScore, text) => {
+// let hoverTimeout;
+
+// document.addEventListener('mouseover', (event) => {
+//     const target = event.target;
+//     if (target.tagName !== 'IMG') return;
+
+//     clearTimeout(hoverTimeout);
+
+//     const rect = target.getBoundingClientRect();
+//     const buttonX = rect.right + window.scrollX + 5;
+//     const buttonY = rect.top + window.scrollY - 30;
+
+//     showFlagButton(buttonX, buttonY);
+
+//     const button = document.getElementById('flag-button');
+//     button.addEventListener('mouseenter', () => clearTimeout(hoverTimeout));
+//     button.addEventListener('mouseleave', () => hideFlagButtonWithDelay());
+// });
+
+// document.addEventListener('mouseout', (event) => {
+//     if (event.target.tagName === 'IMG') {
+//         hideFlagButtonWithDelay();
+//     }
+// });
+
+// function hideFlagButtonWithDelay() {
+//     hoverTimeout = setTimeout(() => {
+//         hideFlagButton();
+//     }, 1000);
+// }
+
+
+// Apply highlight with correct credibility score and add context menu (No changes)
+const applyHighlight = (credibilityScore, justification, text) => {
     const selection = window.getSelection();
     if (selection.rangeCount === 0) return;
     const range = selection.getRangeAt(0);
@@ -346,7 +378,8 @@ const applyHighlight = (credibilityScore, text) => {
     span.title = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
     span.classList.add('credibility-highlight');
     span.dataset.originalText = text; // Store the original text
-    addContextMenu(span);
+    console.log("applyHighlight justify: ", justification);
+    addContextMenu(span, justification);
 
     try {
         range.surroundContents(span);
@@ -397,8 +430,8 @@ const applyImageHighlight = (prediction, imageElement) => {
     imageElement.replaceWith(wrapper);
 };
 //helper function to add context menu
-//helper function to add context menu
-const addContextMenu = (span) => {
+const addContextMenu = (span, justification) => {
+    console.log("add context menu justification: ", justification);
     span.addEventListener('contextmenu', (event) => {
         event.preventDefault();
 
@@ -408,23 +441,29 @@ const addContextMenu = (span) => {
             contextMenu.id = 'credibility-context-menu';
             contextMenu.classList.add('credibility-context-menu');
 
-            const unflagOption = document.createElement('div');
-            unflagOption.textContent = 'Unflag';
-            unflagOption.classList.add('context-menu-option');
-            unflagOption.addEventListener('click', (event) => {
-                handleUnflagClick(event);
-                hideContextMenu();
-            });
-            contextMenu.appendChild(unflagOption);
+            // Create credibility score display
+            const credibilityScore = Math.random(); // Random number between 0 and 1
+            const credibilityDisplay = document.createElement('div');
+            credibilityDisplay.textContent = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
+            credibilityDisplay.classList.add('context-menu-item');
+            contextMenu.appendChild(credibilityDisplay);
 
-            const discussOption = document.createElement('div');
+            // Create reason display
+            const reasonDisplay = document.createElement('div');
+            reasonDisplay.textContent = justification || 'No justification provided';
+            reasonDisplay.classList.add('context-menu-item');
+            contextMenu.appendChild(reasonDisplay);
+
+            // Create discuss button
+            const discussOption = document.createElement('button'); // Use a button for better styling
             discussOption.textContent = 'Discuss';
-            discussOption.classList.add('context-menu-option');
+            discussOption.classList.add('context-menu-button'); // Different class for button
             discussOption.addEventListener('click', () => {
                 showDiscussionPanel(span.dataset.originalText); // Show discussion panel
                 hideContextMenu();
             });
             contextMenu.appendChild(discussOption);
+
             document.body.appendChild(contextMenu);
         }
 
@@ -541,7 +580,7 @@ const applyExistingHighlights = (annotations) => {
         textNodes.forEach(node => {
             // 2. Split the text node and apply the highlight
             console.log("Before Highlight:", node.textContent);
-            highlightTextNode(node, annotation.text, annotation.AI_verification.score);
+            highlightTextNode(node, annotation.text, annotation.AI_verification.score, annotation.justification);
             console.log("After Highlight:", parent.innerHTML);
         });
     });
@@ -582,7 +621,8 @@ function findTextNodes(root, searchText) {
 
 
 // Helper function: Split text node and apply highlight
-function highlightTextNode(textNode, searchText, credibilityScore) {
+function highlightTextNode(textNode, searchText, credibilityScore, justification) {
+    console.log("highlight text node justify: ", justification);
     const parent = textNode.parentNode;
     let nodeText = textNode.nodeValue;
 
@@ -625,7 +665,7 @@ function highlightTextNode(textNode, searchText, credibilityScore) {
     span.dataset.originalText = matchText; // Store original text
     span.textContent = matchText;
 
-    addContextMenu(span); // Keep the context menu functionality
+    addContextMenu(span, justification); // Keep the context menu functionality
 
     // Replace the text node with the split parts
     const fragment = document.createDocumentFragment();
