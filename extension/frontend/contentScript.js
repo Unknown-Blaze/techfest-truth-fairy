@@ -504,23 +504,107 @@ const showDiscussionPanel = async (text) => {
         discussionPanel.id = 'discussion-panel';
         discussionPanel.classList.add('discussion-panel');
 
+        // Container for header (close button and refresh button)
+        const header = document.createElement('div');
+        header.classList.add('discussion-header');
+        discussionPanel.appendChild(header);
+
         // Close button
         const closeButton = document.createElement('button');
         closeButton.textContent = 'Close';
         closeButton.addEventListener('click', () => {
             discussionPanel.style.display = 'none'; // Hide the panel
         });
-        discussionPanel.appendChild(closeButton);
+        header.appendChild(closeButton);
+
+        // Refresh button
+        const refreshButton = document.createElement('button');
+        refreshButton.textContent = 'Refresh';
+        refreshButton.addEventListener('click', () => {
+            showDiscussionPanel(text); // This will re-fetch and re-render the discussion
+        });
+        header.appendChild(refreshButton);
 
         // Title (Flagged Text)
         const title = document.createElement('h3');
         title.textContent = `Discussion: ${text}`;
         discussionPanel.appendChild(title);
 
-        // Container for messages
-        const discussionContainer = document.createElement('div');
-        discussionContainer.id = 'discussion-container';
-        discussionPanel.appendChild(discussionContainer);
+        // Create a container for category, justification, and sources
+        const infoContainer = document.createElement('div');
+        infoContainer.classList.add('discussion-info-container');
+        discussionPanel.appendChild(infoContainer);
+
+        // Fetch and display the discussion information (category, justification, sources)
+        try {
+            const response = await fetch(`${API_BASE_URL}/getDiscussionThreads?text=${encodeURIComponent(text)}`);
+            if (!response.ok) {
+                if (response.status === 400) {
+                    const noMessages = document.createElement('div');
+                    noMessages.textContent = 'No messages yet.';
+                    discussionPanel.appendChild(noMessages);
+                    discussionPanel.style.display = 'block';
+                    return;
+                }
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const discussionThreads = await response.json();
+            console.log("discussionThreads from fetch:", discussionThreads);
+
+            // Check if discussionThreads is an array and has at least one element
+            if (Array.isArray(discussionThreads) && discussionThreads.length > 0) {
+                const thread = discussionThreads[0];
+
+                // Category
+                const categoryContainer = document.createElement('div');
+                categoryContainer.classList.add('info-item', 'category');
+                const categoryTitle = document.createElement('strong');
+                categoryTitle.textContent = 'Category: ';
+                categoryContainer.appendChild(categoryTitle);
+                const categoryText = document.createElement('span');
+                categoryText.textContent = thread.category;
+                categoryContainer.appendChild(categoryText);
+                infoContainer.appendChild(categoryContainer);
+
+                // Justification
+                const justificationContainer = document.createElement('div');
+                justificationContainer.classList.add('info-item', 'justification');
+                const justificationTitle = document.createElement('strong');
+                justificationTitle.textContent = 'Justification: ';
+                justificationContainer.appendChild(justificationTitle);
+                const justificationText = document.createElement('span');
+                justificationText.textContent = thread.justification;
+                justificationContainer.appendChild(justificationText);
+                infoContainer.appendChild(justificationContainer);
+
+                // Sources
+                const sourcesContainer = document.createElement('div');
+                sourcesContainer.classList.add('info-item', 'sources');
+                const sourcesTitle = document.createElement('strong');
+                sourcesTitle.textContent = 'Sources: ';
+                sourcesContainer.appendChild(sourcesTitle);
+                const sourcesText = document.createElement('span');
+                sourcesText.textContent = thread.sources.join(', ');
+                sourcesContainer.appendChild(sourcesText);
+                infoContainer.appendChild(sourcesContainer);
+
+                // Now display the discussion thread below the info section
+                const discussionContainer = document.createElement('div');
+                discussionContainer.id = 'discussion-container';
+                discussionPanel.appendChild(discussionContainer);
+                displayDiscussionThread(thread.discussionThread, discussionContainer);
+
+            } else {
+                const noDiscussions = document.createElement('div');
+                noDiscussions.textContent = 'No discussions yet.';
+                discussionPanel.appendChild(noDiscussions);
+            }
+        } catch (error) {
+            console.error("Error fetching discussion threads:", error);
+            const errorMessage = document.createElement('div');
+            errorMessage.textContent = 'Error loading discussions.';
+            discussionPanel.appendChild(errorMessage);
+        }
 
         // Input for new messages
         const inputMessage = document.createElement('textarea');
@@ -548,20 +632,25 @@ const showDiscussionPanel = async (text) => {
 
         document.body.appendChild(discussionPanel); // Add to the DOM *once*
 
+        discussionPanel.style.display = 'block'; // Show the panel
     }
-    // Fetch and display existing discussion threads
+};
+
+
+
+
+// Function to fetch and display discussion threads
+const fetchAndDisplayDiscussion = async (text) => {
     const discussionContainer = document.getElementById('discussion-container');
     discussionContainer.innerHTML = ''; // Clear previous content
 
     try {
-        const response = await fetch(`${API_BASE_URL}/getDiscussionThreads?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`); // Added url
+        const response = await fetch(`${API_BASE_URL}/getDiscussionThreads?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`);
         if (!response.ok) {
-            if (response.status === 400) { //bad request
-                //It can be that there is no discussion for the text.
+            if (response.status === 400) { // Bad request, no messages
                 const noMessages = document.createElement('div');
                 noMessages.textContent = 'No messages yet.';
                 discussionContainer.appendChild(noMessages);
-                discussionPanel.style.display = 'block';
                 return;
             }
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -571,18 +660,14 @@ const showDiscussionPanel = async (text) => {
 
         // Check if discussionThreads is an array and has at least one element
         if (Array.isArray(discussionThreads) && discussionThreads.length > 0) {
-            // Access the first element and its discussionThread property
             displayDiscussionThread(discussionThreads[0].discussionThread, discussionContainer);
         } else {
-            // Handle the case where there are no threads
             discussionContainer.innerHTML = '<div>No discussions yet.</div>';
         }
     } catch (error) {
         console.error("Error fetching discussion threads:", error);
-        discussionContainer.innerHTML = '<div>Error loading discussions.</div>'; // User-friendly message
+        discussionContainer.innerHTML = '<div>Error loading discussions.</div>';
     }
-
-    discussionPanel.style.display = 'block'; // Show the panel
 };
 
 // --- Resizing Logic ---
@@ -666,7 +751,6 @@ const displayDiscussionThread = (discussionThread, discussionContainer) => {
         discussionContainer.appendChild(messageElement);
     });
     console.log("Discussion thread displayed successfully.");
-
 };
 const sendMessage = async (text, message, discussionContainer, url) => {
     if (!message.trim()) return;  // Don't send empty messages

@@ -178,14 +178,18 @@ app.get('/getDiscussionThreads', async (req, res) => {
     }
     console.log("Query snapshot:", querySnapshot);
 
-    // Extract the discussion threads from the matched documents
+    // Extract the discussion threads and additional fields from the matched documents
     const discussionThreads = querySnapshot.docs.map(doc => ({
         id: doc.id, // Include the document ID for reference
-        discussionThread: doc.data().discussionThread || [] // Get the discussion thread or an empty array if none exists
+        discussionThread: doc.data().discussionThread || [], // Get the discussion thread or an empty array if none exists
+        category: doc.data().AI_verification.category || "Uncategorized", // Assuming category is stored in the database
+        justification: doc.data().AI_verification.justification || "No justification provided", // Assuming justification is stored in the database
+        sources: doc.data().AI_verification.sources || [] // Assuming sources is an array in the database
     }));
+
     console.log("Discussion threads:", discussionThreads.map(thread => thread.discussionThread));
 
-    // Return the list of discussion threads
+    // Return the list of discussion threads with additional information
     res.json(discussionThreads);
 });
 

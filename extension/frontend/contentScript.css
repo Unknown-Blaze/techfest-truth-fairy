@@ -1,125 +1,192 @@
 /* contentScript.css */
 #flag-text-button {
-    position: absolute;
-    z-index: 10000;
-    display: none; /* Initially hidden */
-    cursor: pointer;
-    padding: 5px;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-  }
-  .credibility-highlight { /*Renamed this*/
-    /* Basic highlight style, color will be set inline */
-    cursor: pointer;
+	position: absolute;
+	z-index: 10000;
+	display: none; /* Initially hidden */
+	cursor: pointer;
+	padding: 5px;
+	background-color: white;
+	border: 1px solid #ccc;
+	border-radius: 3px;
 }
-    .credibility-context-menu{ /*Renamed this*/
-        position: absolute;
-        background-color: white;
-        border: 1px solid #ccc;
-        padding: 5px;
-        z-index: 10001;
-        display: none;
-    }
-  .context-menu-option {
-      padding: 5px 10px;
-      cursor: pointer;
-  }
-  
-  .context-menu-option:hover {
-      background-color: #f0f0f0;
-  }
-  .discussion-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: white;
-      border: 1px solid #ccc;
-      padding: 20px;
-      z-index: 10002;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      max-width: 80%; /* Responsive width */
-      max-height: 80vh;
-      overflow-y: auto;
-  
-  }
-  .comment {
-      border-bottom: 1px solid #eee;
-      padding: 5px 0;
-      margin-bottom: 5px;
-  }
-  
-  #close-popup{
-      float: right;
-  }
+.credibility-highlight {
+	/*Renamed this*/
+	/* Basic highlight style, color will be set inline */
+	cursor: pointer;
+}
+.credibility-context-menu {
+	/*Renamed this*/
+	position: absolute;
+	background-color: white;
+	border: 1px solid #ccc;
+	padding: 5px;
+	z-index: 10001;
+	display: none;
+}
+.context-menu-option {
+	padding: 5px 10px;
+	cursor: pointer;
+}
 
-  #discussion-panel {
-    position: fixed; /* Fixed position */
-    top: 0;
-    right: 0; /* Stick to the right side */
-    width: 300px; /* Adjust width as needed */
-    height: 100%; /* Full height */
-    background-color: #f0f0f0;
-    border-left: 1px solid #ccc;
-    z-index: 100000; /* Make sure it's on top of everything */
-    overflow-y: auto; /* Allow scrolling if content overflows */
-    display: none; /* Initially hidden */
-    padding: 10px;
-    box-sizing: border-box; /* Include padding in width/height */
+.context-menu-option:hover {
+	background-color: #f0f0f0;
+}
+.discussion-popup {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-color: white;
+	border: 1px solid #ccc;
+	padding: 20px;
+	z-index: 10002;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	max-width: 80%; /* Responsive width */
+	max-height: 80vh;
+	overflow-y: auto;
+}
+.comment {
+	border-bottom: 1px solid #eee;
+	padding: 5px 0;
+	margin-bottom: 5px;
+}
+
+#close-popup {
+	float: right;
+}
+
+#discussion-panel {
+	position: fixed; /* Fixed position */
+	top: 0;
+	right: 0; /* Stick to the right side */
+	width: 300px; /* Adjust width as needed */
+	height: 100%; /* Full height */
+	background-color: #f0f0f0;
+	border-left: 1px solid #ccc;
+	z-index: 100000; /* Make sure it's on top of everything */
+	overflow-y: auto; /* Allow scrolling if content overflows */
+	display: none; /* Initially hidden */
+	padding: 10px;
+	box-sizing: border-box; /* Include padding in width/height */
 }
 
 #discussion-panel h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 1.2em;
+	margin-top: 0;
+	margin-bottom: 10px;
+	font-size: 1.2em;
 }
-#discussion-container{
-    overflow-y: auto;
-    max-height: 75vh;
+#discussion-container {
+	overflow-y: auto;
+	max-height: 75vh;
 }
 #discussion-input {
-    width: 95%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    resize: vertical; /* Allow vertical resizing */
+	width: 95%;
+	padding: 10px;
+	margin-bottom: 10px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+	resize: vertical; /* Allow vertical resizing */
 }
 
 #send-button {
-    padding: 8px 15px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+	padding: 8px 15px;
+	background-color: #4caf50;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
 }
 
 #send-button:hover {
-    background-color: #3e8e41;
+	background-color: #3e8e41;
 }
-#close-popup{
-    float: right;
+#close-popup {
+	float: right;
 }
 /* Styles for individual messages */
 .message {
-    margin-bottom: 10px;
-    padding: 8px;
-    border-bottom: 1px solid #ddd;
+	margin-bottom: 10px;
+	padding: 8px;
+	border-bottom: 1px solid #ddd;
 }
 
 .user {
-    font-weight: bold;
-    margin-bottom: 2px;
+	font-weight: bold;
+	margin-bottom: 2px;
 }
 
 .message-text {
-    margin-bottom: 2px;
+	margin-bottom: 2px;
 }
 
 .timestamp {
-    font-size: 0.8em;
-    color: #888;
+	font-size: 0.8em;
+	color: #888;
+}
+
+/* General styling for the panel */
+/* General styling for the panel */
+.discussion-info-container {
+	background-color: #f4f4f9;
+	padding: 20px;
+	border-radius: 8px;
+	margin-bottom: 20px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.info-item {
+	margin-bottom: 15px;
+}
+
+.info-item strong {
+	font-weight: bold;
+	color: #333;
+}
+
+.category {
+	background-color: #e0f7fa;
+	padding: 15px;
+	border-radius: 6px;
+}
+
+.justification {
+	background-color: #e1bee7;
+	padding: 15px;
+	border-radius: 6px;
+}
+
+.sources {
+	background-color: #ffeb3b;
+	padding: 15px;
+	border-radius: 6px;
+}
+
+/* Style for the discussion messages */
+#discussion-container {
+	margin-top: 20px;
+	font-size: 14px;
+}
+
+#discussion-input {
+	width: 100%;
+	padding: 10px;
+	margin-top: 10px;
+	border-radius: 4px;
+	border: 1px solid #ccc;
+}
+
+/* Style for the Send button */
+#send-button {
+	padding: 10px 20px;
+	margin-top: 10px;
+	background-color: #4caf50;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+#send-button:hover {
+	background-color: #45a049;
 }
