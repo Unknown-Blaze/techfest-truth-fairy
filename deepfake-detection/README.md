@@ -30,8 +30,7 @@ An image file in formats like `.jpg`, `.jpeg`, `.png`, etc.
 Prediction 0 -> Fake
 Prediction 1 -> Real
 
-## U need to decode the base64 to display the image
-### Decoding logic
+## Decode base64 to display the image
 Refer to the example_decode file if unsure
 
 
