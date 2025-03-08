@@ -8,8 +8,8 @@ We're manufacturing a browser extension that allows users to flag what they beli
 
 ## Setup environment
 conda create --name techfest python=3.12
-conda activate techfest
 
+conda activate techfest
 
 ## Link for pretrained weights
 https://drive.google.com/file/d/1wMnUPwN_aSq9ay0qvNaWvzGYFUKfcqbV/view?usp=sharing
