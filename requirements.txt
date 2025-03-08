@@ -1,0 +1,10 @@
+Flask
+openai
+python-dotenv
+opencv-python
+numpy
+pillow
+torch
+torchvision
+requests
+bs4

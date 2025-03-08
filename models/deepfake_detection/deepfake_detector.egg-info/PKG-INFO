@@ -1,0 +1,22 @@
+Metadata-Version: 2.2
+Name: deepfake_detector
+Version: 1.0
+Summary: Deepfake Detection API with Grad-CAM visualization
+Home-page: https://github.com/Unknown-Blaze/techfest-truth-fairy
+Author: Your Name
+Author-email: your.email@example.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Dist: flask
+Requires-Dist: torch
+Requires-Dist: torchvision
+Requires-Dist: pillow
+Requires-Dist: numpy
+Requires-Dist: opencv-python
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: summary

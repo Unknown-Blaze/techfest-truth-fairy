@@ -1,0 +1,13 @@
+README.md
+setup.py
+dataset/__init__.py
+dataset/mydataset.py
+dataset/transform.py
+deepfake_detector.egg-info/PKG-INFO
+deepfake_detector.egg-info/SOURCES.txt
+deepfake_detector.egg-info/dependency_links.txt
+deepfake_detector.egg-info/requires.txt
+deepfake_detector.egg-info/top_level.txt
+network/__init__.py
+network/models.py
+network/xception.py
