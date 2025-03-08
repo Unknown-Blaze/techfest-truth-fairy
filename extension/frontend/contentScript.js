@@ -520,8 +520,14 @@ const showDiscussionPanel = async (text) => {
         // Refresh button
         const refreshButton = document.createElement('button');
         refreshButton.textContent = 'Refresh';
-        refreshButton.addEventListener('click', () => {
-            showDiscussionPanel(text); // This will re-fetch and re-render the discussion
+        refreshButton.addEventListener('click', async () => {
+            // Clear existing discussion container before re-fetching
+            const discussionContainer = document.getElementById('discussion-container');
+            if (discussionContainer) {
+                discussionContainer.innerHTML = ''; // Clear current content
+            }
+            // Re-fetch and display the discussion
+            await fetchAndDisplayDiscussion(text, discussionContainer);
         });
         header.appendChild(refreshButton);
 
@@ -534,6 +540,10 @@ const showDiscussionPanel = async (text) => {
         const infoContainer = document.createElement('div');
         infoContainer.classList.add('discussion-info-container');
         discussionPanel.appendChild(infoContainer);
+
+        const discussionContainer = document.createElement('div');
+        discussionContainer.id = 'discussion-container';
+        discussionPanel.appendChild(discussionContainer);  // Append discussion container to panel
 
         // Fetch and display the discussion information (category, justification, sources)
         try {
@@ -577,23 +587,28 @@ const showDiscussionPanel = async (text) => {
                 justificationContainer.appendChild(justificationText);
                 infoContainer.appendChild(justificationContainer);
 
-                // Sources
+                // Sources (Numbered List)
                 const sourcesContainer = document.createElement('div');
                 sourcesContainer.classList.add('info-item', 'sources');
                 const sourcesTitle = document.createElement('strong');
                 sourcesTitle.textContent = 'Sources: ';
                 sourcesContainer.appendChild(sourcesTitle);
-                const sourcesText = document.createElement('span');
-                sourcesText.textContent = thread.sources.join(', ');
-                sourcesContainer.appendChild(sourcesText);
+
+                // Create an ordered list for sources (numbered)
+                const sourcesList = document.createElement('ol');
+                thread.sources.forEach(source => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = source;
+                    sourcesList.appendChild(listItem);
+                });
+                sourcesContainer.appendChild(sourcesList);
                 infoContainer.appendChild(sourcesContainer);
 
                 // Now display the discussion thread below the info section
-                const discussionContainer = document.createElement('div');
-                discussionContainer.id = 'discussion-container';
-                discussionPanel.appendChild(discussionContainer);
                 displayDiscussionThread(thread.discussionThread, discussionContainer);
 
+                // Pass the discussionContainer to fetchAndDisplayDiscussion
+                fetchAndDisplayDiscussion(text, discussionContainer);
             } else {
                 const noDiscussions = document.createElement('div');
                 noDiscussions.textContent = 'No discussions yet.';
@@ -637,11 +652,8 @@ const showDiscussionPanel = async (text) => {
 };
 
 
-
-
 // Function to fetch and display discussion threads
-const fetchAndDisplayDiscussion = async (text) => {
-    const discussionContainer = document.getElementById('discussion-container');
+const fetchAndDisplayDiscussion = async (text, discussionContainer) => {
     discussionContainer.innerHTML = ''; // Clear previous content
 
     try {
@@ -669,6 +681,7 @@ const fetchAndDisplayDiscussion = async (text) => {
         discussionContainer.innerHTML = '<div>Error loading discussions.</div>';
     }
 };
+
 
 // --- Resizing Logic ---
 
