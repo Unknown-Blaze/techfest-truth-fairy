@@ -278,7 +278,7 @@ app.post('/flagImage', async (req, res) => {
             lastUpdated: admin.firestore.Timestamp.now(),
         });
 
-        res.json({ message: "Image flagged successfully", flaggedImageId: newFlagRef.flaggedBy[0] });
+        res.json({message: "Image flagged successfully", flaggedImageId: newFlagRef.id});
     } catch (error) {
         console.error("Error flagging image:", error);
         res.status(500).json({ message: "Internal server error" });

@@ -1,6 +1,8 @@
 // contentScript.js
 let selectedText = "";
 let lastHoveredImage = null;
+let isHoveringImage = false;
+let flagButtonTimeout = null;
 const API_BASE_URL = "http://localhost:3000"; //  YOUR ACTUAL BACKEND URL
 let discussionPanel = null;
 
@@ -16,7 +18,7 @@ const showFlagButton = (x, y) => {
     if (!flagButton) {
         flagButton = document.createElement('button');
         flagButton.id = 'flag-text-button';
-        flagButton.innerHTML = '➕ Add';
+        flagButton.innerHTML = '🚩 Flag';
         flagButton.style.position = 'absolute';
         flagButton.style.zIndex = '10000';
         flagButton.style.marginRight = '5px';
@@ -24,6 +26,7 @@ const showFlagButton = (x, y) => {
             if (lastHoveredImage) {
                 handleImageFlag(lastHoveredImage);
                 lastHoveredImage = null;
+                isHoveringImage = false;
             } else if (selectedText) {
                 handleFlagClick();
             }
@@ -334,15 +337,19 @@ document.addEventListener('mouseover', (event) => {
 
     // Ensure the target is an image
     if (target.tagName === 'IMG') {
+        isHoveringImage = true;
         lastHoveredImage = target; // Store the last hovered image
         const rect = target.getBoundingClientRect();
         const buttonX = rect.right + window.scrollX + 5;
         const buttonY = rect.top + window.scrollY - 30;
         showFlagButton(buttonX, buttonY);
-    } else if (!target.closest('#flag-button')) {
-        // Hide the button if the mouse moves away from both image and flag button
-        // hideFlagButton();
-        // lastHoveredImage = null;
+        clearTimeout(flagButtonTimeout);
+    } else if (!target.closest('#flag-text-button') && isHoveringImage) {
+        flagButtonTimeout = setTimeout(() => {
+            lastHoveredImage = null;
+            isHoveringImage = false;
+            hideFlagButton();
+        }, 1000);
     }
 });
 
