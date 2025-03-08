@@ -6,19 +6,43 @@ let discussionPanel = null;
 // Function to create and show the "flag" button (No changes here)
 const showFlagButton = (x, y) => {
     let flagButton = document.getElementById('flag-text-button');
+    let processingButton = document.getElementById('processing-button');
+
     if (!flagButton) {
         flagButton = document.createElement('button');
         flagButton.id = 'flag-text-button';
         flagButton.innerHTML = `<img src="${chrome.runtime.getURL('assets/flag.png')}" style="width: 20px; height: 20px;"> Flag`;
         flagButton.style.position = 'absolute';
         flagButton.style.zIndex = '10000';
+        flagButton.style.marginRight = '5px';
         flagButton.addEventListener('click', handleFlagClick);
         document.body.appendChild(flagButton);
+    }
+
+    if (!processingButton) {
+        processingButton = document.createElement('button');
+        processingButton.id = 'processing-button';
+        processingButton.innerHTML = 'Processing...';
+        processingButton.style.position = 'absolute';
+        processingButton.style.zIndex = '10000';
+        processingButton.style.padding = '8px 12px';
+        processingButton.style.border = 'none';
+        processingButton.style.background = '#007bff';
+        processingButton.style.color = 'white';
+        processingButton.style.borderRadius = '5px';
+        processingButton.style.cursor = 'not-allowed';
+        processingButton.style.fontSize = '14px';
+        processingButton.style.fontWeight = 'bold';
+        processingButton.style.display = 'none'; // Initially hidden
+        document.body.appendChild(processingButton);
     }
 
     flagButton.style.left = `${x}px`;
     flagButton.style.top = `${y}px`;
     flagButton.style.display = 'block';
+
+    processingButton.style.left = `${x - 120}px`; // Position next to Flag button
+    processingButton.style.top = `${y}px`;
 };
 
 // Function to hide the "flag" button (No changes here)
@@ -29,12 +53,30 @@ const hideFlagButton = () => {
     }
 };
 
+// Function to show the "Processing..." button
+const showProcessingButton = () => {
+    const processingButton = document.getElementById('processing-button');
+    if (processingButton) {
+        processingButton.style.display = 'block';
+    }
+};
+
+// Function to hide the "Processing..." button
+const hideProcessingButton = () => {
+    const processingButton = document.getElementById('processing-button');
+    if (processingButton) {
+        processingButton.style.display = 'none';
+    }
+};
+
 const AI_API_URL = "http://127.0.0.1:5000/fact-check"; // AI Model API
 const BACKEND_API_URL = "http://localhost:3000/store_analysis"; // Your backend API
 
 const handleFlagClick = async () => {
     if (!selectedText) return;
     console.log("Flagging text:", selectedText);
+
+    showProcessingButton();
 
     try {
         // Step 1: Process text using the AI model first
@@ -147,6 +189,7 @@ const handleFlagClick = async () => {
     } catch (error) {
         console.error("Error during flagText or AI processing:", error);
     }
+    hideProcessingButton();
 
     hideFlagButton();
 };
