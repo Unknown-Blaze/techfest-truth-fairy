@@ -217,36 +217,36 @@ document.addEventListener('mouseup', (event) => {
     }
 });
 
-let hoverTimeout;
+// let hoverTimeout;
 
-document.addEventListener('mouseover', (event) => {
-    const target = event.target;
-    if (target.tagName !== 'IMG') return;
+// document.addEventListener('mouseover', (event) => {
+//     const target = event.target;
+//     if (target.tagName !== 'IMG') return;
 
-    clearTimeout(hoverTimeout);
+//     clearTimeout(hoverTimeout);
 
-    const rect = target.getBoundingClientRect();
-    const buttonX = rect.right + window.scrollX + 5;
-    const buttonY = rect.top + window.scrollY - 30;
+//     const rect = target.getBoundingClientRect();
+//     const buttonX = rect.right + window.scrollX + 5;
+//     const buttonY = rect.top + window.scrollY - 30;
 
-    showFlagButton(buttonX, buttonY);
+//     showFlagButton(buttonX, buttonY);
 
-    const button = document.getElementById('flag-button');
-    button.addEventListener('mouseenter', () => clearTimeout(hoverTimeout));
-    button.addEventListener('mouseleave', () => hideFlagButtonWithDelay());
-});
+//     const button = document.getElementById('flag-button');
+//     button.addEventListener('mouseenter', () => clearTimeout(hoverTimeout));
+//     button.addEventListener('mouseleave', () => hideFlagButtonWithDelay());
+// });
 
-document.addEventListener('mouseout', (event) => {
-    if (event.target.tagName === 'IMG') {
-        hideFlagButtonWithDelay();
-    }
-});
+// document.addEventListener('mouseout', (event) => {
+//     if (event.target.tagName === 'IMG') {
+//         hideFlagButtonWithDelay();
+//     }
+// });
 
-function hideFlagButtonWithDelay() {
-    hoverTimeout = setTimeout(() => {
-        hideFlagButton();
-    }, 1000);
-}
+// function hideFlagButtonWithDelay() {
+//     hoverTimeout = setTimeout(() => {
+//         hideFlagButton();
+//     }, 1000);
+// }
 
 
 // Apply highlight with correct credibility score and add context menu (No changes)
