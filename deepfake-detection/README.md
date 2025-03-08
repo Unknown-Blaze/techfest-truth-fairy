@@ -22,7 +22,7 @@ An image file in formats like `.jpg`, `.jpeg`, `.png`, etc.
 **Output**:  
 - **prediction**: An integer representing the predicted class.  
 - **heatmap_image**: A Base64-encoded string representing the Grad-CAM heatmap overlay.
-- **example** {
+- **example**": {
     "prediction": 1,
     "heatmap_image": "/9j/4AAQSkZJRgABAQAAAQABAAD...."
 }
