@@ -19,7 +19,9 @@
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     min-width: 200px;
-    align-items: center;
+    align-items: justify;
+    max-width: 25%;
+    max-height: fit-content;
 }
 
 .context-menu-item {
@@ -27,7 +29,8 @@
     border-bottom: 1px solid #eee;
     margin-bottom: 5px;
     font-size: 14px;
-    align-items: center;
+    align-items: justify;
+    max-width: 100%;
 }
 
 .context-menu-item:last-child {
