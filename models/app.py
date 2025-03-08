@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 import openai
 import os
+import torch
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from factcheck_model.rag_brave_pipeline import search_brave

@@ -1,4 +1,5 @@
 import io
+import os
 import base64
 import cv2
 import torch
@@ -12,7 +13,7 @@ from dataset.transform import xception_default_data_transforms
 app = Flask(__name__)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-MODEL_PATH = './pretrained_model/df_c0_best.pkl'
+MODEL_PATH = 'deepfake_detection/pretrained_model/df_c0_best.pkl'
 model = model_selection(modelname='xception', num_out_classes=2, dropout=0.5)
 model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
 if isinstance(model, torch.nn.DataParallel):
