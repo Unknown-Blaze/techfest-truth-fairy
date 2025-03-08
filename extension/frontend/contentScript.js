@@ -81,37 +81,7 @@ const handleFlagClick = async () => {
     console.log("Flagging text:", selectedText);
 
     try {
-        // ✅ Step 1: Flag the text
-        const flagResponse = await new Promise((resolve, reject) => {
-            chrome.runtime.sendMessage(
-                {
-                    action: "flagText",
-                    selectedText,
-                    pageURL: window.location.href,
-                    userId: chrome.runtime.id // Temporary user ID
-                },
-                (response) => {
-                    if (chrome.runtime.lastError) {
-                        console.error("Runtime error:", chrome.runtime.lastError.message);
-                        reject("Runtime error: " + chrome.runtime.lastError.message);
-                    } else if (response?.credibilityScore !== undefined) {
-                        applyHighlight(response.credibilityScore, selectedText);
-                        console.log("Flagged text successfully:", response);
-                        resolve(response);
-                    } else if (response?.error) {
-                        console.error("Backend error:", response.error);
-                        reject("Backend error: " + response.error);
-                    } else {
-                        console.error("Unexpected response:", response);
-                        reject("No valid response received");
-                    }
-                }
-            );
-        });
-
-        // console.log("Flag Response received:", flagResponse);
-
-        // ✅ Step 2: Process text using the AI model
+        // ✅ Step 1: Process text using the AI model first
         console.log("Processing text with AI model...");
         console.log("Selected Text:", selectedText);
         console.log("URL:", window.location.href);
@@ -134,9 +104,42 @@ const handleFlagClick = async () => {
             return;
         }
 
-        // ✅ Step 3: Store AI analysis in the backend database
-        console.log("Storing AI analysis in the database...");
+        // ✅ Step 2: If it's flagged as fake, store in the backend database
         if (aiData.category === "Fake") {
+            console.log("Flagging the text as fake...");
+
+            // Flag the text
+            const flagResponse = await new Promise((resolve, reject) => {
+                chrome.runtime.sendMessage(
+                    {
+                        action: "flagText",
+                        selectedText,
+                        pageURL: window.location.href,
+                        userId: chrome.runtime.id, // Temporary user ID
+                    },
+                    (response) => {
+                        if (chrome.runtime.lastError) {
+                            console.error("Runtime error:", chrome.runtime.lastError.message);
+                            reject("Runtime error: " + chrome.runtime.lastError.message);
+                        } else if (response?.credibilityScore !== undefined) {
+                            applyHighlight(response.credibilityScore, selectedText);
+                            console.log("Flagged text successfully:", response);
+                            resolve(response);
+                        } else if (response?.error) {
+                            console.error("Backend error:", response.error);
+                            reject("Backend error: " + response.error);
+                        } else {
+                            console.error("Unexpected response:", response);
+                            reject("No valid response received");
+                        }
+                    }
+                );
+            });
+
+            console.log("Flag Response received:", flagResponse);
+
+            // ✅ Step 3: Store AI analysis in the backend database
+            console.log("Storing AI analysis in the database...");
             const storeResponse = await fetch(BACKEND_API_URL, {
                 method: "POST",
                 headers: {
@@ -161,15 +164,44 @@ const handleFlagClick = async () => {
             } else {
                 console.log("Data stored successfully:", storeResult);
             }
-        }
+        } else {
+            // ✅ If the text is not fake, just highlight it (no flagging or storing)
+            console.log("Text is not fake, highlighting it...");
+            const flagResponse = await new Promise((resolve, reject) => {
+                chrome.runtime.sendMessage(
+                    {
+                        action: "highlightText",
+                        selectedText,
+                        pageURL: window.location.href,
+                        userId: chrome.runtime.id, // Temporary user ID
+                    },
+                    (response) => {
+                        if (chrome.runtime.lastError) {
+                            console.error("Runtime error:", chrome.runtime.lastError.message);
+                            reject("Runtime error: " + chrome.runtime.lastError.message);
+                        } else if (response?.credibilityScore !== undefined) {
+                            applyHighlight(response.credibilityScore, selectedText);
+                            console.log("Highlighted text successfully:", response);
+                            resolve(response);
+                        } else if (response?.error) {
+                            console.error("Backend error:", response.error);
+                            reject("Backend error: " + response.error);
+                        } else {
+                            console.error("Unexpected response:", response);
+                            reject("No valid response received");
+                        }
+                    }
+                );
+            });
 
+            console.log("Highlight Response received:", flagResponse);
+        }
     } catch (error) {
         console.error("Error during flagText or AI processing:", error);
     }
 
     hideFlagButton();
 };
-
 
 const handleUnflagClick = (event) => {
     const span = event.target.closest('.credibility-highlight');
@@ -221,44 +253,44 @@ const applyHighlight = (credibilityScore, text) => {
 //helper function to add context menu
 const addContextMenu = (span) => {
     span.addEventListener('contextmenu', (event) => {
-       event.preventDefault();
+        event.preventDefault();
 
-       let contextMenu = document.getElementById('credibility-context-menu');
-       if (!contextMenu) {
-           contextMenu = document.createElement('div');
-           contextMenu.id = 'credibility-context-menu';
-           contextMenu.classList.add('credibility-context-menu');
+        let contextMenu = document.getElementById('credibility-context-menu');
+        if (!contextMenu) {
+            contextMenu = document.createElement('div');
+            contextMenu.id = 'credibility-context-menu';
+            contextMenu.classList.add('credibility-context-menu');
 
-           const unflagOption = document.createElement('div');
-           unflagOption.textContent = 'Unflag';
-           unflagOption.classList.add('context-menu-option');
-           unflagOption.addEventListener('click', (event) => {
-               handleUnflagClick(event);
-               hideContextMenu();
-           });
-           contextMenu.appendChild(unflagOption);
+            const unflagOption = document.createElement('div');
+            unflagOption.textContent = 'Unflag';
+            unflagOption.classList.add('context-menu-option');
+            unflagOption.addEventListener('click', (event) => {
+                handleUnflagClick(event);
+                hideContextMenu();
+            });
+            contextMenu.appendChild(unflagOption);
 
-           const discussOption = document.createElement('div');
-           discussOption.textContent = 'Discuss';
-           discussOption.classList.add('context-menu-option');
-           discussOption.addEventListener('click', () => {
-               showDiscussionPanel(span.dataset.originalText); // Show discussion panel
-               hideContextMenu();
-           });
-           contextMenu.appendChild(discussOption);
-           document.body.appendChild(contextMenu);
-       }
+            const discussOption = document.createElement('div');
+            discussOption.textContent = 'Discuss';
+            discussOption.classList.add('context-menu-option');
+            discussOption.addEventListener('click', () => {
+                showDiscussionPanel(span.dataset.originalText); // Show discussion panel
+                hideContextMenu();
+            });
+            contextMenu.appendChild(discussOption);
+            document.body.appendChild(contextMenu);
+        }
 
-       contextMenu.style.left = `${event.pageX}px`;
-       contextMenu.style.top = `${event.pageY}px`;
-       contextMenu.style.display = 'block';
-   });
-       //Hiding the context menu
-   document.addEventListener('click', (e) => {
-       if (!e.target.closest('.credibility-context-menu')) {
-           hideContextMenu();
-       }
-   });
+        contextMenu.style.left = `${event.pageX}px`;
+        contextMenu.style.top = `${event.pageY}px`;
+        contextMenu.style.display = 'block';
+    });
+    //Hiding the context menu
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.credibility-context-menu')) {
+            hideContextMenu();
+        }
+    });
 }
 
 // Remove the highlight completely, regardless of the score
@@ -485,7 +517,7 @@ const showDiscussionPanel = async (text) => {
         const sendButton = document.createElement('button');
         sendButton.id = 'send-button'; // Add an ID
         sendButton.textContent = 'Send Message';
-        sendButton.addEventListener('click', async() => {
+        sendButton.addEventListener('click', async () => {
             const url = window.location.href;
             await sendMessage(text, inputMessage.value, discussionContainer, url);
         });
@@ -502,22 +534,22 @@ const showDiscussionPanel = async (text) => {
         document.body.appendChild(discussionPanel); // Add to the DOM *once*
 
     }
-     // Fetch and display existing discussion threads
+    // Fetch and display existing discussion threads
     const discussionContainer = document.getElementById('discussion-container');
     discussionContainer.innerHTML = ''; // Clear previous content
 
     try {
         const response = await fetch(`${API_BASE_URL}/getDiscussionThreads?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`); // Added url
         if (!response.ok) {
-           if (response.status === 400) { //bad request
-              //It can be that there is no discussion for the text.
-              const noMessages = document.createElement('div');
-              noMessages.textContent = 'No messages yet.';
-              discussionContainer.appendChild(noMessages);
-              discussionPanel.style.display = 'block';
-              return;
-          }
-          throw new Error(`HTTP error! Status: ${response.status}`);
+            if (response.status === 400) { //bad request
+                //It can be that there is no discussion for the text.
+                const noMessages = document.createElement('div');
+                noMessages.textContent = 'No messages yet.';
+                discussionContainer.appendChild(noMessages);
+                discussionPanel.style.display = 'block';
+                return;
+            }
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const discussionThreads = await response.json();
         console.log("discussionThreads from fetch:", discussionThreads);
@@ -637,7 +669,7 @@ const sendMessage = async (text, message, discussionContainer, url) => {
         }
 
         const data = await response.json();
-		// Create a new message object with the *returned* data (including timestamp)
+        // Create a new message object with the *returned* data (including timestamp)
         const newMessage = {
             userId: userId,
             message: message,
