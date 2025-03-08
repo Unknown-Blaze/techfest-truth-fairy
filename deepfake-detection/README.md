@@ -7,7 +7,7 @@ pip install -r requirements.txt
 
 ## Run command to start flask server
 ```
-python app.py
+python deepfake_app.py
 ```
 
 ## Using api
