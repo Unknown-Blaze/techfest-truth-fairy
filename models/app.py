@@ -1,6 +1,7 @@
 import base64
 import cv2
 import numpy as np
+import requests
 from PIL import Image
 import openai
 import os
@@ -11,6 +12,7 @@ from factcheck_model.rag_brave_pipeline import search_brave
 from factcheck_model.retrieve_time import get_publish_date
 from deepfake_detection.deepfake_app import model, transform, grad_cam, overlay_heatmap_on_image, device
 from flask_cors import CORS
+from io import BytesIO
 
 app = Flask(__name__)
 CORS(app)
@@ -98,12 +100,17 @@ def fact_check():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    if 'image' not in request.files:
+    if 'imageUrl' not in request.json:
         return jsonify({'error': 'No image provided'}), 400
 
-    file = request.files['image']
+    image_url = request.json['imageUrl']
     try:
-        pil_img = Image.open(file.stream).convert("RGB")
+        response = requests.get(image_url)
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to download image'}), 400
+        
+        image_bytes = BytesIO(response.content)  # Convert to bytes
+        pil_img = Image.open(image_bytes).convert("RGB")
     except Exception as e:
         return jsonify({'error': 'Invalid image file'}), 400
 

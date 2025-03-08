@@ -1,5 +1,6 @@
 // contentScript.js
 let selectedText = "";
+let lastHoveredImage = null;
 const API_BASE_URL = "http://localhost:3000"; //  YOUR ACTUAL BACKEND URL
 let discussionPanel = null;
 
@@ -11,11 +12,19 @@ const showFlagButton = (x, y) => {
     if (!flagButton) {
         flagButton = document.createElement('button');
         flagButton.id = 'flag-text-button';
-        flagButton.innerHTML = `<img src="${chrome.runtime.getURL('assets/flag.png')}" style="width: 20px; height: 20px;"> Flag`;
+        flagButton.innerHTML = '➕ Add';
         flagButton.style.position = 'absolute';
         flagButton.style.zIndex = '10000';
         flagButton.style.marginRight = '5px';
-        flagButton.addEventListener('click', handleFlagClick);
+        flagButton.addEventListener('click', () => {
+            if (lastHoveredImage) {
+                handleImageFlag(lastHoveredImage);
+                lastHoveredImage = null;
+            } else if (selectedText) {
+                handleFlagClick();
+            }
+        });
+        
         document.body.appendChild(flagButton);
     }
 
@@ -70,10 +79,12 @@ const hideProcessingButton = () => {
 };
 
 const AI_API_URL = "http://127.0.0.1:5000/fact-check"; // AI Model API
+const IMAGE_API_URL = "http://127.0.0.1:5000/predict" // Image Model API
 const BACKEND_API_URL = "http://localhost:3000/store_analysis"; // Your backend API
 
-const handleFlagClick = async () => {
-    if (!selectedText) return;
+const handleFlagClick = async (event) => {
+    if(!selectedText) return;
+
     console.log("Flagging text:", selectedText);
     hideFlagButton();
     showProcessingButton();
@@ -194,6 +205,92 @@ const handleFlagClick = async () => {
 
 };
 
+const handleImageFlag = async (imageElement) => {
+    console.log("Flagging image:", imageElement.src);
+    
+    hideFlagButton();
+    showProcessingButton();
+
+    try {
+        // Step 1: Send image URL to AI for analysis
+        console.log("Processing image with AI model...");
+        const aiResponse = await fetch(IMAGE_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                imageUrl: imageElement.src,
+                url: window.location.href,
+            }),
+        });
+
+        const aiData = await aiResponse.json();
+        console.log("AI Model Response for image:", aiData);
+
+        if (!aiData || aiData.error) {
+            console.error("Error from AI model:", aiData?.error || "No response");
+            return;
+        }
+
+        // Step 2: If flagged as fake, store it
+        if (aiData.prediction === 0) {
+            console.log("Flagging the image as fake...");
+            const imageResponse = await new Promise((resolve, reject) => {
+                chrome.runtime.sendMessage(
+                    {
+                        action: "flagImage",
+                        imageUrl: imageElement.src,
+                        pageURL: window.location.href,
+                        userId: chrome.runtime.id,
+                    },
+                    (response) => {
+                        if (chrome.runtime.lastError) {
+                            console.error("Runtime error:", chrome.runtime.lastError.message);
+                            reject("Runtime error: " + chrome.runtime.lastError.message);
+                        } else {
+                            console.log("Flagged image successfully:", response);
+                            applyImageHighlight(response.prediction, imageElement);
+                            resolve(response);
+                        }
+                    }
+                );
+            });
+
+            console.log("Image Response received:", imageResponse);
+
+            // Store AI analysis in the backend
+            console.log("Storing AI analysis in the database...");
+            const storeResponse = await fetch(BACKEND_API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    imageUrl: imageElement.src,
+                    url: window.location.href,
+                    prediction: aiData.prediction,
+                    heatmap_image: aiData.heatmap_image,
+                    userId: chrome.runtime.id, // Temporary user identifier
+                }),
+            });
+
+            const storeResult = await storeResponse.json();
+            console.log("Stored image data in database:", storeResult);
+
+            if (!storeResult.success) {
+                console.error("Error storing image data:", storeResult.message);
+            } else {
+                console.log("Image data stored successfully:", storeResult);
+            }
+        }
+        console.log(aiData.prediction, imageElement)
+        applyImageHighlight(aiData.prediction, imageElement);
+    } catch (error) {
+        console.error("Error during flagImage or AI processing:", error);
+    }
+    hideProcessingButton();
+};
 
 
 const handleUnflagClick = (event) => {
@@ -217,39 +314,24 @@ document.addEventListener('mouseup', (event) => {
     }
 });
 
-// let hoverTimeout;
+document.addEventListener('mouseover', (event) => {
+    const target = event.target;
 
-// document.addEventListener('mouseover', (event) => {
-//     const target = event.target;
-//     if (target.tagName !== 'IMG') return;
+    // Ensure the target is an image
+    if (target.tagName === 'IMG') {
+        lastHoveredImage = target; // Store the last hovered image
+        const rect = target.getBoundingClientRect();
+        const buttonX = rect.right + window.scrollX + 5;
+        const buttonY = rect.top + window.scrollY - 30;
+        showFlagButton(buttonX, buttonY);
+    } else if (!target.closest('#flag-button')) {
+        // Hide the button if the mouse moves away from both image and flag button
+        // hideFlagButton();
+        // lastHoveredImage = null;
+    }
+});
 
-//     clearTimeout(hoverTimeout);
-
-//     const rect = target.getBoundingClientRect();
-//     const buttonX = rect.right + window.scrollX + 5;
-//     const buttonY = rect.top + window.scrollY - 30;
-
-//     showFlagButton(buttonX, buttonY);
-
-//     const button = document.getElementById('flag-button');
-//     button.addEventListener('mouseenter', () => clearTimeout(hoverTimeout));
-//     button.addEventListener('mouseleave', () => hideFlagButtonWithDelay());
-// });
-
-// document.addEventListener('mouseout', (event) => {
-//     if (event.target.tagName === 'IMG') {
-//         hideFlagButtonWithDelay();
-//     }
-// });
-
-// function hideFlagButtonWithDelay() {
-//     hoverTimeout = setTimeout(() => {
-//         hideFlagButton();
-//     }, 1000);
-// }
-
-
-// Apply highlight with correct credibility score and add context menu (No changes)
+// Apply highlight for text
 const applyHighlight = (credibilityScore, text) => {
     const selection = window.getSelection();
     if (selection.rangeCount === 0) return;
@@ -273,6 +355,46 @@ const applyHighlight = (credibilityScore, text) => {
         console.error("Error surrounding contents", e)
     }
 
+};
+
+// Apply highlight for images
+const applyImageHighlight = (prediction, imageElement) => {
+    if (!imageElement) return;
+
+    // Calculate HSL color based on credibility score
+    const hue = 100;
+    const saturation = 100;
+    const lightness = 75;
+    const highlightColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+    // Apply a colored border to the image
+    imageElement.style.border = `4px solid ${highlightColor}`;
+    imageElement.style.borderRadius = "5px";
+
+    // Set tooltip for credibility score
+    imageElement.title = prediction
+
+    // Add a semi-transparent overlay (optional)
+    const overlay = document.createElement("div");
+    overlay.classList.add("image-overlay");
+    overlay.style.position = "absolute";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.backgroundColor = highlightColor;
+    overlay.style.opacity = "0.3"; // Adjust transparency
+    overlay.style.pointerEvents = "none"; // Prevent interference with clicks
+
+    // Wrap image in a container to properly position overlay
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    wrapper.style.display = "inline-block";
+    wrapper.appendChild(imageElement.cloneNode(true)); // Clone the image
+    wrapper.appendChild(overlay);
+
+    // Replace the original image with the wrapped version
+    imageElement.replaceWith(wrapper);
 };
 //helper function to add context menu
 //helper function to add context menu
