@@ -233,6 +233,83 @@ app.post('/store_analysis', async (req, res) => {
     }
 });
 
+app.post('/flagImage', async (req, res) => {
+    const { imageUrl, url, prediction, heatmap_image, userId } = req.body;
+    console.log("Received flagImage request:", imageUrl, url, prediction, userId);
+
+    if (!imageUrl || !url || prediction === undefined || !userId) {
+        return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    try {
+        const flaggedRef = db.collection('flaggedImages');
+
+        // Check if the image URL is already flagged
+        const existingQuery = await flaggedRef
+            .where('imageUrl', '==', imageUrl)
+            .where('website', '==', url)
+            .get();
+
+        if (!existingQuery.empty) {
+            // Update existing flagged image
+            let doc = existingQuery.docs[0];
+            await doc.ref.update({
+                flaggedBy: admin.firestore.FieldValue.arrayUnion(userId),
+                lastUpdated: admin.firestore.Timestamp.now(),
+                prediction,
+                heatmap_image
+            });
+
+            return res.json({ message: "Updated existing flagged image", flaggedImageId: doc.id });
+        }
+
+        // Create a new flagged image entry
+        const newFlagRef = await flaggedRef.add({
+            imageUrl,
+            website: url,
+            flaggedBy: [userId],
+            prediction, // AI analysis result (0 = fake, 1 = real)
+            heatmap_image, // AI-generated heatmap
+            createdAt: admin.firestore.Timestamp.now(),
+            lastUpdated: admin.firestore.Timestamp.now(),
+        });
+
+        res.json({ message: "Image flagged successfully", flaggedImageId: newFlagRef.flaggedBy[0] });
+    } catch (error) {
+        console.error("Error flagging image:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Add the endpoint to get all flagged images
+app.get('/flaggedImages', async (req, res) => {
+    try {
+        const flaggedRef = db.collection('flaggedImages');
+        const snapshot = await flaggedRef.get();
+
+        if (snapshot.empty) {
+            return res.status(404).json({ message: "No flagged images found" });
+        }
+
+        const flaggedImages = snapshot.docs.map(doc => ({
+            id: doc.id, // Document ID
+            imageUrl: doc.data().imageUrl, // Image URL
+            website: doc.data().website, // Website URL
+            flaggedBy: doc.data().flaggedBy, // List of user IDs who flagged the image
+            prediction: doc.data().prediction, // AI prediction (0 = fake, 1 = real)
+            heatmap_image: doc.data().heatmap_image, // AI-generated heatmap image
+            createdAt: doc.data().createdAt.toDate(), // Timestamp converted to date
+            lastUpdated: doc.data().lastUpdated.toDate(), // Timestamp converted to date
+        }));
+
+        res.json(flaggedImages);
+    } catch (error) {
+        console.error("Error retrieving flagged images:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+
 
 // Start the Express server
 const PORT = process.env.PORT || 3000;
