@@ -15,8 +15,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       });
 
     return true; // Keep the message channel open
-  } else if (request.action === "unflagText") {
-    // No changes needed here, as we don't use unflag anymore
+  } else if (request.action === "highlightText") {
+    // Process the highlight action (no need to call backend)
+    const { selectedText, pageURL, userId } = request;
+    console.log("Received highlightText request:", selectedText, pageURL, userId);
+    // Here you could use a dummy credibility score or fetch it from a backend
+    const credibilityScore = Math.random();
+    sendResponse({ credibilityScore }); // Send dummy score back
     return true;
   }
 });

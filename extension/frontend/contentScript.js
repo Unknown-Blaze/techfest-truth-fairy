@@ -29,50 +29,6 @@ const hideFlagButton = () => {
     }
 };
 
-// Handle clicks on the "flag" button
-// const handleFlagClick = async () => {
-//     if (!selectedText) return;
-//     console.log("Flagging text:", selectedText);
-
-//     try {
-//         const response = await new Promise((resolve, reject) => {
-//             chrome.runtime.sendMessage(
-//                 {
-//                     action: "flagText",
-//                     selectedText,
-//                     pageURL: window.location.href,
-//                     userId: chrome.runtime.id //  extension ID as a temporary user ID
-//                 },
-//                 (response) => {
-//                     if (chrome.runtime.lastError) {
-//                         console.error("Runtime error:", chrome.runtime.lastError.message);
-//                         reject("Runtime error: " + chrome.runtime.lastError.message);
-//                     } else if (response?.credibilityScore !== undefined) {
-//                         //apply highlight as soon as flag button is clicked
-//                         applyHighlight(response.credibilityScore, selectedText);
-//                         console.log("Flagged text successfully:");
-//                         resolve(response);
-//                     } else if (response?.error) {
-//                         console.error("Backend error:", response.error);
-//                         reject("Backend error: " + response.error);
-//                     } else {
-//                         console.error("Unexpected response:", response);
-//                         reject("No valid response received");
-//                     }
-//                 }
-//             );
-//         });
-
-//         console.log("Response received:", response);
-//         // After successfully flagging, re-fetch and apply highlights. No need to do it, as we are applying it instantly
-//         // const annotations = await fetchAnnotations(window.location.href);
-//         // applyExistingHighlights(annotations);
-//     } catch (error) {
-//         console.error("Error during flagText:", error);
-//     }
-
-//     hideFlagButton();
-// };
 const AI_API_URL = "http://127.0.0.1:5000/fact-check"; // AI Model API
 const BACKEND_API_URL = "http://localhost:3000/store_analysis"; // Your backend API
 
@@ -81,10 +37,8 @@ const handleFlagClick = async () => {
     console.log("Flagging text:", selectedText);
 
     try {
-        // ✅ Step 1: Process text using the AI model first
+        // Step 1: Process text using the AI model first
         console.log("Processing text with AI model...");
-        console.log("Selected Text:", selectedText);
-        console.log("URL:", window.location.href);
         const aiResponse = await fetch(AI_API_URL, {
             method: "POST",
             headers: {
@@ -104,68 +58,40 @@ const handleFlagClick = async () => {
             return;
         }
 
-        // ✅ Step 2: If it's flagged as fake, store in the backend database
+        // Step 2: If flagged as fake, store it
         if (aiData.category === "Fake") {
             console.log("Flagging the text as fake...");
-
-            // Flag the text
             const flagResponse = await new Promise((resolve, reject) => {
                 chrome.runtime.sendMessage(
                     {
                         action: "flagText",
                         selectedText,
                         pageURL: window.location.href,
-                        userId: chrome.runtime.id, // Temporary user ID
+                        userId: chrome.runtime.id,
                     },
                     (response) => {
                         if (chrome.runtime.lastError) {
                             console.error("Runtime error:", chrome.runtime.lastError.message);
                             reject("Runtime error: " + chrome.runtime.lastError.message);
-                        } else if (response?.credibilityScore !== undefined) {
-                            applyHighlight(response.credibilityScore, selectedText);
-                            console.log("Flagged text successfully:", response);
-                            resolve(response);
-                        } else if (response?.error) {
-                            console.error("Backend error:", response.error);
-                            reject("Backend error: " + response.error);
                         } else {
-                            console.error("Unexpected response:", response);
-                            reject("No valid response received");
+                            if (response?.credibilityScore !== undefined) {
+                                console.log("Flagged text successfully:", response);
+                                applyHighlight(response.credibilityScore, selectedText);
+                                resolve(response);
+                            } else {
+                                console.error("Unexpected response:", response);
+                                reject("Unexpected response received");
+                            }
                         }
                     }
                 );
             });
 
             console.log("Flag Response received:", flagResponse);
-
-            // ✅ Step 3: Store AI analysis in the backend database
-            console.log("Storing AI analysis in the database...");
-            const storeResponse = await fetch(BACKEND_API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    text: selectedText,
-                    url: window.location.href,
-                    category: aiData.category,
-                    justification: aiData.justification,
-                    sources: aiData.sources,
-                    credibilityScore: flagResponse.credibilityScore, // Including credibility score
-                    userId: chrome.runtime.id, // Temporary user identifier
-                }),
-            });
-
-            const storeResult = await storeResponse.json();
-            console.log("Stored in database:", storeResult);
-
-            if (!storeResult.success) {
-                console.error("Error storing data:", storeResult.message);
-            } else {
-                console.log("Data stored successfully:", storeResult);
-            }
+            // Store AI analysis in backend
+            await storeAIAnalysis(aiData, selectedText);
         } else {
-            // ✅ If the text is not fake, just highlight it (no flagging or storing)
+            // Step 3: Text is not fake, just highlight it
             console.log("Text is not fake, highlighting it...");
             const flagResponse = await new Promise((resolve, reject) => {
                 chrome.runtime.sendMessage(
@@ -173,22 +99,19 @@ const handleFlagClick = async () => {
                         action: "highlightText",
                         selectedText,
                         pageURL: window.location.href,
-                        userId: chrome.runtime.id, // Temporary user ID
+                        userId: chrome.runtime.id,
                     },
                     (response) => {
                         if (chrome.runtime.lastError) {
                             console.error("Runtime error:", chrome.runtime.lastError.message);
                             reject("Runtime error: " + chrome.runtime.lastError.message);
                         } else if (response?.credibilityScore !== undefined) {
-                            applyHighlight(response.credibilityScore, selectedText);
                             console.log("Highlighted text successfully:", response);
+                            applyHighlight(response.credibilityScore, selectedText);
                             resolve(response);
-                        } else if (response?.error) {
-                            console.error("Backend error:", response.error);
-                            reject("Backend error: " + response.error);
                         } else {
                             console.error("Unexpected response:", response);
-                            reject("No valid response received");
+                            reject("Unexpected response received");
                         }
                     }
                 );
@@ -202,6 +125,7 @@ const handleFlagClick = async () => {
 
     hideFlagButton();
 };
+
 
 const handleUnflagClick = (event) => {
     const span = event.target.closest('.credibility-highlight');
