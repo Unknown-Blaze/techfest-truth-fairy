@@ -16,7 +16,7 @@ const showFlagButton = (x, y) => {
     if (!flagButton) {
         flagButton = document.createElement('button');
         flagButton.id = 'flag-text-button';
-        flagButton.innerHTML = '➕ Add';
+        flagButton.innerHTML = '🚩 Flag';
         flagButton.style.position = 'absolute';
         flagButton.style.zIndex = '10000';
         flagButton.style.marginRight = '5px';
