@@ -75,7 +75,7 @@ const BACKEND_API_URL = "http://localhost:3000/store_analysis"; // Your backend 
 const handleFlagClick = async () => {
     if (!selectedText) return;
     console.log("Flagging text:", selectedText);
-
+    hideFlagButton();
     showProcessingButton();
 
     try {
@@ -191,7 +191,7 @@ const handleFlagClick = async () => {
     }
     hideProcessingButton();
 
-    hideFlagButton();
+
 };
 
 
