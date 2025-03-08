@@ -373,44 +373,6 @@ const applyHighlight = (credibilityScore, text) => {
 };
 
 // Apply highlight for images
-// const applyImageHighlight = (prediction, imageElement) => {
-//     if (!imageElement) return;
-
-//     // Calculate HSL color based on credibility score
-//     const hue = 100;
-//     const saturation = 100;
-//     const lightness = 75;
-//     const highlightColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-
-//     // Apply a colored border to the image
-//     imageElement.style.border = `4px solid ${highlightColor}`;
-//     imageElement.style.borderRadius = "5px";
-
-//     // Set tooltip for credibility score
-//     imageElement.title = prediction
-
-//     // Add a semi-transparent overlay (optional)
-//     const overlay = document.createElement("div");
-//     overlay.classList.add("image-overlay");
-//     overlay.style.position = "absolute";
-//     overlay.style.top = "0";
-//     overlay.style.left = "0";
-//     overlay.style.width = "100%";
-//     overlay.style.height = "100%";
-//     overlay.style.backgroundColor = highlightColor;
-//     overlay.style.opacity = "0.3"; // Adjust transparency
-//     overlay.style.pointerEvents = "none"; // Prevent interference with clicks
-
-//     // Wrap image in a container to properly position overlay
-//     const wrapper = document.createElement("div");
-//     wrapper.style.position = "relative";
-//     wrapper.style.display = "inline-block";
-//     wrapper.appendChild(imageElement.cloneNode(true)); // Clone the image
-//     wrapper.appendChild(overlay);
-
-//     // Replace the original image with the wrapped version
-//     imageElement.replaceWith(wrapper);
-// };
 const applyImageHighlight = (prediction, imageElement) => {
     if (!imageElement) return;
 
@@ -425,7 +387,7 @@ const applyImageHighlight = (prediction, imageElement) => {
     imageElement.style.borderRadius = "5px";
 
     // Set tooltip for credibility score
-    imageElement.title = prediction;
+    imageElement.title = prediction
 
     // Add a semi-transparent overlay (optional)
     const overlay = document.createElement("div");
@@ -439,21 +401,59 @@ const applyImageHighlight = (prediction, imageElement) => {
     overlay.style.opacity = "0.3"; // Adjust transparency
     overlay.style.pointerEvents = "none"; // Prevent interference with clicks
 
-    // Add overlay directly to the image wrapper, not the entire page
-    const imageWrapper = imageElement.parentElement;
-    if (!imageWrapper) {
-        // If there's no wrapper, create one
-        const wrapper = document.createElement("div");
-        wrapper.style.position = "relative";
-        wrapper.style.display = "inline-block";
-        wrapper.appendChild(imageElement);
-        imageElement.parentNode.replaceChild(wrapper, imageElement);
-    }
+    // Wrap image in a container to properly position overlay
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    wrapper.style.display = "inline-block";
+    wrapper.appendChild(imageElement.cloneNode(true)); // Clone the image
+    wrapper.appendChild(overlay);
 
-    // Append overlay to the image wrapper (not the entire page)
-    imageWrapper.style.position = "relative"; // Make sure wrapper is positioned correctly
-    imageWrapper.appendChild(overlay);
+    // Replace the original image with the wrapped version
+    imageElement.replaceWith(wrapper);
 };
+// const applyImageHighlight = (prediction, imageElement) => {
+//     if (!imageElement) return;
+
+//     // Calculate HSL color based on credibility score
+//     const hue = 100;
+//     const saturation = 100;
+//     const lightness = 75;
+//     const highlightColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+//     // Apply a colored border to the image
+//     imageElement.style.border = `4px solid ${highlightColor}`;
+//     imageElement.style.borderRadius = "5px";
+
+//     // Set tooltip for credibility score
+//     imageElement.title = prediction;
+
+//     // Add a semi-transparent overlay (optional)
+//     const overlay = document.createElement("div");
+//     overlay.classList.add("image-overlay");
+//     overlay.style.position = "absolute";
+//     overlay.style.top = "0";
+//     overlay.style.left = "0";
+//     overlay.style.width = "100%";
+//     overlay.style.height = "100%";
+//     overlay.style.backgroundColor = highlightColor;
+//     overlay.style.opacity = "0.3"; // Adjust transparency
+//     overlay.style.pointerEvents = "none"; // Prevent interference with clicks
+
+//     // Add overlay directly to the image wrapper, not the entire page
+//     const imageWrapper = imageElement.parentElement;
+//     if (!imageWrapper) {
+//         // If there's no wrapper, create one
+//         const wrapper = document.createElement("div");
+//         wrapper.style.position = "relative";
+//         wrapper.style.display = "inline-block";
+//         wrapper.appendChild(imageElement);
+//         imageElement.parentNode.replaceChild(wrapper, imageElement);
+//     }
+
+//     // Append overlay to the image wrapper (not the entire page)
+//     imageWrapper.style.position = "relative"; // Make sure wrapper is positioned correctly
+//     imageWrapper.appendChild(overlay);
+// };
 
 //helper function to add context menu
 //helper function to add context menu
