@@ -53,3 +53,73 @@
   #close-popup{
       float: right;
   }
+
+  #discussion-panel {
+    position: fixed; /* Fixed position */
+    top: 0;
+    right: 0; /* Stick to the right side */
+    width: 300px; /* Adjust width as needed */
+    height: 100%; /* Full height */
+    background-color: #f0f0f0;
+    border-left: 1px solid #ccc;
+    z-index: 100000; /* Make sure it's on top of everything */
+    overflow-y: auto; /* Allow scrolling if content overflows */
+    display: none; /* Initially hidden */
+    padding: 10px;
+    box-sizing: border-box; /* Include padding in width/height */
+}
+
+#discussion-panel h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+#discussion-container{
+    overflow-y: auto;
+    max-height: 75vh;
+}
+#discussion-input {
+    width: 95%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    resize: vertical; /* Allow vertical resizing */
+}
+
+#send-button {
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#send-button:hover {
+    background-color: #3e8e41;
+}
+#close-popup{
+    float: right;
+}
+/* Styles for individual messages */
+.message {
+    margin-bottom: 10px;
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.user {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.message-text {
+    margin-bottom: 2px;
+}
+
+.timestamp {
+    font-size: 0.8em;
+    color: #888;
+}

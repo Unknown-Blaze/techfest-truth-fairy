@@ -1,6 +1,7 @@
 // contentScript.js
 let selectedText = "";
 const API_BASE_URL = "http://localhost:3000"; //  YOUR ACTUAL BACKEND URL
+let discussionPanel = null;
 
 // Function to create and show the "flag" button (No changes here)
 const showFlagButton = (x, y) => {
@@ -108,7 +109,7 @@ const handleFlagClick = async () => {
             );
         });
 
-        console.log("Flag Response received:", flagResponse);
+        // console.log("Flag Response received:", flagResponse);
 
         // ✅ Step 2: Process text using the AI model
         console.log("Processing text with AI model...");
@@ -217,46 +218,47 @@ const applyHighlight = (credibilityScore, text) => {
 
 };
 //helper function to add context menu
+//helper function to add context menu
 const addContextMenu = (span) => {
     span.addEventListener('contextmenu', (event) => {
-        event.preventDefault();
+       event.preventDefault();
 
-        let contextMenu = document.getElementById('credibility-context-menu');
-        if (!contextMenu) {
-            contextMenu = document.createElement('div');
-            contextMenu.id = 'credibility-context-menu';
-            contextMenu.classList.add('credibility-context-menu');
+       let contextMenu = document.getElementById('credibility-context-menu');
+       if (!contextMenu) {
+           contextMenu = document.createElement('div');
+           contextMenu.id = 'credibility-context-menu';
+           contextMenu.classList.add('credibility-context-menu');
 
-            const unflagOption = document.createElement('div');
-            unflagOption.textContent = 'Unflag';
-            unflagOption.classList.add('context-menu-option');
-            unflagOption.addEventListener('click', (event) => {
-                handleUnflagClick(event);
-                hideContextMenu();
-            });
-            contextMenu.appendChild(unflagOption);
+           const unflagOption = document.createElement('div');
+           unflagOption.textContent = 'Unflag';
+           unflagOption.classList.add('context-menu-option');
+           unflagOption.addEventListener('click', (event) => {
+               handleUnflagClick(event);
+               hideContextMenu();
+           });
+           contextMenu.appendChild(unflagOption);
 
-            const discussOption = document.createElement('div');
-            discussOption.textContent = 'Discuss';
-            discussOption.classList.add('context-menu-option');
-            discussOption.addEventListener('click', () => {
-                showDiscussionPopup(span.dataset.originalText); // Show discussion popup
-                hideContextMenu();
-            });
-            contextMenu.appendChild(discussOption);
-            document.body.appendChild(contextMenu);
-        }
+           const discussOption = document.createElement('div');
+           discussOption.textContent = 'Discuss';
+           discussOption.classList.add('context-menu-option');
+           discussOption.addEventListener('click', () => {
+               showDiscussionPanel(span.dataset.originalText); // Show discussion panel
+               hideContextMenu();
+           });
+           contextMenu.appendChild(discussOption);
+           document.body.appendChild(contextMenu);
+       }
 
-        contextMenu.style.left = `${event.pageX}px`;
-        contextMenu.style.top = `${event.pageY}px`;
-        contextMenu.style.display = 'block';
-    });
-    //Hiding the context menu
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.credibility-context-menu')) {
-            hideContextMenu();
-        }
-    });
+       contextMenu.style.left = `${event.pageX}px`;
+       contextMenu.style.top = `${event.pageY}px`;
+       contextMenu.style.display = 'block';
+   });
+       //Hiding the context menu
+   document.addEventListener('click', (e) => {
+       if (!e.target.closest('.credibility-context-menu')) {
+           hideContextMenu();
+       }
+   });
 }
 
 // Remove the highlight completely, regardless of the score
@@ -448,72 +450,127 @@ const newVideoLoaded = async () => {
 
 // Run newVideoLoaded when the page loads
 newVideoLoaded();
+const showDiscussionPanel = async (text) => {
+    if (!discussionPanel) {
+        // Create the panel if it doesn't exist
+        discussionPanel = document.createElement('div');
+        discussionPanel.id = 'discussion-panel';
+        discussionPanel.classList.add('discussion-panel');
 
-
-const showDiscussionPopup = async (text) => {
-    let popup = document.getElementById('discussion-popup');
-
-    if (!popup) {
-        // Create the popup if it doesn't exist
-        popup = document.createElement('div');
-        popup.id = 'discussion-popup';
-        popup.classList.add('discussion-popup');
-
-        // Add a close button to hide the popup
+        // Close button
         const closeButton = document.createElement('button');
         closeButton.textContent = 'Close';
         closeButton.addEventListener('click', () => {
-            popup.style.display = 'none';
+            discussionPanel.style.display = 'none'; // Hide the panel
         });
-        popup.appendChild(closeButton);
+        discussionPanel.appendChild(closeButton);
 
-        // Container to hold discussion messages
+        // Title (Flagged Text)
+        const title = document.createElement('h3');
+        title.textContent = `Discussion: ${text}`;
+        discussionPanel.appendChild(title);
+
+        // Container for messages
         const discussionContainer = document.createElement('div');
         discussionContainer.id = 'discussion-container';
-        popup.appendChild(discussionContainer);
+        discussionPanel.appendChild(discussionContainer);
 
+        // Input for new messages
         const inputMessage = document.createElement('textarea');
         inputMessage.id = 'discussion-input';
         inputMessage.placeholder = 'Add your message...';
-        popup.appendChild(inputMessage);
+        discussionPanel.appendChild(inputMessage);
 
+        // Send button
         const sendButton = document.createElement('button');
+        sendButton.id = 'send-button'; // Add an ID
         sendButton.textContent = 'Send Message';
-        sendButton.addEventListener('click', async () => {
+        sendButton.addEventListener('click', async() => {
             const url = window.location.href;
             await sendMessage(text, inputMessage.value, discussionContainer, url);
         });
-        popup.appendChild(sendButton);
+        discussionPanel.appendChild(sendButton);
 
-        document.body.appendChild(popup);
+        // Resizable handle (div)
+        const resizer = document.createElement('div');
+        resizer.id = 'panel-resizer';
+        discussionPanel.appendChild(resizer);
+
+        // Add event listeners for resizing
+        resizer.addEventListener('mousedown', initResize, false);
+
+        document.body.appendChild(discussionPanel); // Add to the DOM *once*
+
     }
+     // Fetch and display existing discussion threads
+    const discussionContainer = document.getElementById('discussion-container');
+    discussionContainer.innerHTML = ''; // Clear previous content
 
-    // Fetch existing discussion threads
     try {
-        const response = await fetch(`http://localhost:3000/getDiscussionThreads?text=${text}`);
+        const response = await fetch(`${API_BASE_URL}/getDiscussionThreads?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`); // Added url
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+           if (response.status === 400) { //bad request
+              //It can be that there is no discussion for the text.
+              const noMessages = document.createElement('div');
+              noMessages.textContent = 'No messages yet.';
+              discussionContainer.appendChild(noMessages);
+              discussionPanel.style.display = 'block';
+              return;
+          }
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const discussionThreads = await response.json();
-        console.log("discussionThreads from fetch:", discussionThreads); //debugging
+        console.log("discussionThreads from fetch:", discussionThreads);
 
-        // Flatten all discussion messages
-        const allMessages = discussionThreads.flatMap(thread => thread.discussionThread);
-        console.log("Flattened messages:", allMessages);
-
-        const discussionContainer = document.getElementById('discussion-container'); //verify existance of container
-        console.log("discussionContainer:", discussionContainer); //debugging
-
-        // Display all messages
-        displayDiscussionThread(allMessages, discussionContainer);
-
+        // Check if discussionThreads is an array and has at least one element
+        if (Array.isArray(discussionThreads) && discussionThreads.length > 0) {
+            // Access the first element and its discussionThread property
+            displayDiscussionThread(discussionThreads[0].discussionThread, discussionContainer);
+        } else {
+            // Handle the case where there are no threads
+            discussionContainer.innerHTML = '<div>No discussions yet.</div>';
+        }
     } catch (error) {
         console.error("Error fetching discussion threads:", error);
+        discussionContainer.innerHTML = '<div>Error loading discussions.</div>'; // User-friendly message
     }
 
-    popup.style.display = 'block';
+    discussionPanel.style.display = 'block'; // Show the panel
 };
 
+// --- Resizing Logic ---
+
+let isResizing = false;
+
+function initResize(e) {
+    e.preventDefault(); // Prevent text selection during drag
+    isResizing = true;
+    document.addEventListener('mousemove', resizePanel);
+    document.addEventListener('mouseup', stopResize);
+
+    // Prevent text selection during drag (cross-browser)
+    document.body.style.userSelect = 'none';
+    document.body.style.webkitUserSelect = 'none'; // Safari
+    document.body.style.msUserSelect = 'none'; // IE 10+
+}
+
+function resizePanel(e) {
+    if (!isResizing) return;
+
+    const newWidth = window.innerWidth - e.clientX;
+    discussionPanel.style.width = `${newWidth}px`;
+}
+
+function stopResize() {
+    isResizing = false;
+    document.removeEventListener('mousemove', resizePanel);
+    document.removeEventListener('mouseup', stopResize);
+
+    // Re-enable text selection
+    document.body.style.userSelect = '';
+    document.body.style.webkitUserSelect = '';
+    document.body.style.msUserSelect = '';
+}
 
 const displayDiscussionThread = (discussionThread, discussionContainer) => {
     console.log("Received discussion thread:", discussionThread);
@@ -538,8 +595,8 @@ const displayDiscussionThread = (discussionThread, discussionContainer) => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message');
 
-        const userId = messageObj.userId || 'Unknown User';
-        const message = messageObj.message || 'No message content';
+        const userId = messageObj.userId || 'Unknown User';  // Handle missing userId
+        const message = messageObj.message || 'No message content'; // handle missing message
 
         const userElement = document.createElement('div');
         userElement.classList.add('user');
@@ -551,6 +608,7 @@ const displayDiscussionThread = (discussionThread, discussionContainer) => {
 
         const timestampElement = document.createElement('div');
         timestampElement.classList.add('timestamp');
+        // Handle possible missing timestamps more gracefully
         const timestamp = messageObj.timestamp ? new Date(messageObj.timestamp).toLocaleString() : 'No timestamp';
         timestampElement.textContent = timestamp;
 
@@ -560,32 +618,71 @@ const displayDiscussionThread = (discussionThread, discussionContainer) => {
 
         discussionContainer.appendChild(messageElement);
     });
-
     console.log("Discussion thread displayed successfully.");
+
 };
-
-const sendMessage = async (text, message, discussionContainer) => {
-    if (!message.trim()) return;
-
-    const url = window.location.href; // Get the current page URL
+const sendMessage = async (text, message, discussionContainer, url) => {
+    if (!message.trim()) return;  // Don't send empty messages
 
     try {
-        const userId = chrome.runtime.id; // Using extension ID as user ID
-        const response = await fetch(`http://localhost:3000/addDiscussionMessage`, {
+        const userId = chrome.runtime.id; //  extension ID as user ID
+        const response = await fetch(`${API_BASE_URL}/addDiscussionMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, userId, message, url }) // Include the URL in the request
+            body: JSON.stringify({ text, userId, message, url }),
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            const newMessage = { userId, message, timestamp: new Date().toISOString() };
-            displayDiscussionThread([...discussionContainer.children, newMessage], discussionContainer);
+        if (!response.ok) {
+            throw new Error(`Failed to send message: ${response.status}`);
         }
+
+        const data = await response.json();
+		// Create a new message object with the *returned* data (including timestamp)
+        const newMessage = {
+            userId: userId,
+            message: message,
+            timestamp: data.timestamp, // Use the timestamp from the server
+        };
+
+        // Append the new message directly, without re-fetching everything
+        appendMessage(newMessage, discussionContainer);
+
+
+        // Clear the input field
+        document.getElementById('discussion-input').value = '';
+
     } catch (error) {
         console.error("Error sending message:", error);
     }
 };
+// --- Helper Function to Append a Single Message ---
+function appendMessage(messageObj, container) {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message');
+
+    const userId = messageObj.userId || 'Unknown User';
+    const message = messageObj.message || 'No message content';
+
+    const userElement = document.createElement('div');
+    userElement.classList.add('user');
+    userElement.textContent = `User: ${userId}`;
+
+    const messageText = document.createElement('div');
+    messageText.classList.add('message-text');
+    messageText.textContent = message;
+
+    const timestampElement = document.createElement('div');
+    timestampElement.classList.add('timestamp');
+    const timestamp = messageObj.timestamp ? new Date(messageObj.timestamp).toLocaleString() : 'No timestamp';
+    timestampElement.textContent = timestamp;
+
+    messageElement.appendChild(userElement);
+    messageElement.appendChild(messageText);
+    messageElement.appendChild(timestampElement);
+
+    container.appendChild(messageElement);
+    container.scrollTop = container.scrollHeight; // Auto-scroll to the bottom
+}
 
 // Listen for URL changes (important for single-page applications)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -594,145 +691,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     return true; // Indicate asynchronous response
 });
-
-
-
-// const showDiscussionPopup = async (text, flaggedTextId) => {
-//     let popup = document.getElementById('discussion-popup');
-
-//     if (!popup) {
-//         popup = document.createElement('div');
-//         popup.id = 'discussion-popup';
-//         popup.classList.add('discussion-popup');
-
-//         const closeButton = document.createElement('button');
-//         closeButton.textContent = 'Close';
-//         closeButton.addEventListener('click', () => {
-//             popup.style.display = 'none';
-//         });
-//         popup.appendChild(closeButton);
-
-//         const discussionContainer = document.createElement('div');
-//         discussionContainer.id = 'discussion-container';
-//         popup.appendChild(discussionContainer);
-
-//         const inputMessage = document.createElement('textarea');
-//         inputMessage.id = 'discussion-input';
-//         inputMessage.placeholder = 'Add your message...';
-//         popup.appendChild(inputMessage);
-
-//         const sendButton = document.createElement('button');
-//         sendButton.textContent = 'Send Message';
-//         sendButton.addEventListener('click', async () => {
-//             // Get the current URL of the page
-//             const url = window.location.href;
-
-//             // Send the message with the text, URL, and flaggedTextId
-//             await sendMessage(text, inputMessage.value, discussionContainer, url);
-//         });
-//         popup.appendChild(sendButton);
-
-//         document.body.appendChild(popup);
-//     }
-
-//     // Fetch existing discussion thread
-//     const response = await fetch(`http://localhost:3000/getAnnotations?url=${window.location.href}`);
-//     const flaggedTexts = await response.json();
-
-//     const flaggedText = flaggedTexts.find(ft => ft.id === flaggedTextId);
-//     if (flaggedText) {
-//         displayDiscussionThread(flaggedText.discussionThread);
-//     }
-// };
-
-// const displayDiscussionThread = (discussionThread) => {
-//     const discussionContainer = document.getElementById('discussion-container');
-//     discussionContainer.innerHTML = '';
-
-//     discussionThread.forEach(msg => {
-//         const messageDiv = document.createElement('div');
-//         messageDiv.classList.add('discussion-message');
-//         messageDiv.textContent = `${msg.userId}: ${msg.message}`;
-//         discussionContainer.appendChild(messageDiv);
-//     });
-// };
-
-
-// // Send new message to backend
-// const sendMessage = async (text, message, discussionContainer) => {
-//     if (!message.trim()) return;
-//     console.log("Sending message:", message), console.log("Text:", text), console.log("URL:", window.location.href);
-
-//     const url = window.location.href; // Get the current page URL
-
-//     try {
-//         const userId = chrome.runtime.id; // Using extension ID as user ID
-//         const response = await fetch(`http://localhost:3000/addDiscussionMessage`, {
-//             method: 'POST',
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify({ text, userId, message, url }) // Include the URL in the request
-//         });
-
-/*************  ✨ Codeium Command 🌟  *************/
-/**
- * Show the discussion popup for a given text.
- * Fetches existing discussion threads and displays them in the popup.
- * @param {string} text - The text for which to show the discussion popup.
- */
-//         if (response.ok) {
-//             const data = await response.json();
-//             const newMessage = { userId, message, timestamp: new Date().toISOString() };
-//             displayDiscussionThread([...discussionContainer.children, newMessage]);
-//         }
-//     } catch (error) {
-//         console.error("Error sending message:", error);
-//     }
-// };
-
-// const showDiscussionPopup = (text) => {
-//     let popup = document.getElementById('discussion-popup');
-
-//     if (!popup) {
-//         popup = document.createElement('div');
-//         popup.id = 'discussion-popup';
-//         popup.classList.add('discussion-popup');
-
-//         const closeButton = document.createElement('button');
-//         closeButton.textContent = 'Close';
-//         closeButton.addEventListener('click', () => {
-//             popup.style.display = 'none';
-//         });
-//         popup.appendChild(closeButton);
-//         document.body.appendChild(popup);
-//     }
-//     popup.innerHTML = `
-//         <button id="close-popup">Close</button>
-//         <h3>Discussion</h3>
-//         <p>Text: ${text}</p>
-//         <div id="comments-section">
-
-//         </div>
-//         <textarea id="comment-input" placeholder="Add a comment..."></textarea>
-//         <button id="add-comment">Add Comment</button>
-//     `;
-//     document.getElementById('close-popup').addEventListener('click', () => {
-//         popup.style.display = 'none';
-//     });
-//     document.getElementById('add-comment').addEventListener('click', addComment);
-//     popup.style.display = 'block';
-
-//     const commentsSection = document.getElementById("comments-section");
-
-//     const comments = [
-//         { user: "User1", text: "I think this is misleading." },
-//         { user: "User2", text: "I agree, the source is questionable." },
-//     ];
-
-//     comments.forEach(comment => {
-//         const commentElement = document.createElement("div");
-//         commentElement.className = "comment";
-//         commentElement.textContent = `${comment.user}: ${comment.text}`;
-//         commentsSection.appendChild(commentElement);
-//     });
-
-// };
