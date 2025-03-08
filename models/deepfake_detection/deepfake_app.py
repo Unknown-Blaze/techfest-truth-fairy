@@ -21,7 +21,7 @@ if isinstance(model, torch.nn.DataParallel):
 model.to(device)
 model.eval()
 
-target_layer = model.model.conv4 
+target_layer = model.model.block8 
 
 class GradCAM:
     def __init__(self, model, target_layer):
