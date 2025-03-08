@@ -88,8 +88,33 @@ const handleFlagClick = async () => {
             });
 
             console.log("Flag Response received:", flagResponse);
-            // Store AI analysis in backend
-            await storeAIAnalysis(aiData, selectedText);
+
+            // Store AI analysis in the backend
+            console.log("Storing AI analysis in the database...");
+            const storeResponse = await fetch(BACKEND_API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    text: selectedText,
+                    url: window.location.href,
+                    category: aiData.category,
+                    justification: aiData.justification,
+                    sources: aiData.sources,
+                    credibilityScore: flagResponse.credibilityScore, // Including credibility score
+                    userId: chrome.runtime.id, // Temporary user identifier
+                }),
+            });
+
+            const storeResult = await storeResponse.json();
+            console.log("Stored in database:", storeResult);
+
+            if (!storeResult.success) {
+                console.error("Error storing data:", storeResult.message);
+            } else {
+                console.log("Data stored successfully:", storeResult);
+            }
         } else {
             // Step 3: Text is not fake, just highlight it
             console.log("Text is not fake, highlighting it...");
@@ -125,6 +150,7 @@ const handleFlagClick = async () => {
 
     hideFlagButton();
 };
+
 
 
 const handleUnflagClick = (event) => {
