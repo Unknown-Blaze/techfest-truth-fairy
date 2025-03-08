@@ -29,27 +29,73 @@ const hideFlagButton = () => {
 };
 
 // Handle clicks on the "flag" button
+// const handleFlagClick = async () => {
+//     if (!selectedText) return;
+//     console.log("Flagging text:", selectedText);
+
+//     try {
+//         const response = await new Promise((resolve, reject) => {
+//             chrome.runtime.sendMessage(
+//                 {
+//                     action: "flagText",
+//                     selectedText,
+//                     pageURL: window.location.href,
+//                     userId: chrome.runtime.id //  extension ID as a temporary user ID
+//                 },
+//                 (response) => {
+//                     if (chrome.runtime.lastError) {
+//                         console.error("Runtime error:", chrome.runtime.lastError.message);
+//                         reject("Runtime error: " + chrome.runtime.lastError.message);
+//                     } else if (response?.credibilityScore !== undefined) {
+//                         //apply highlight as soon as flag button is clicked
+//                         applyHighlight(response.credibilityScore, selectedText);
+//                         console.log("Flagged text successfully:");
+//                         resolve(response);
+//                     } else if (response?.error) {
+//                         console.error("Backend error:", response.error);
+//                         reject("Backend error: " + response.error);
+//                     } else {
+//                         console.error("Unexpected response:", response);
+//                         reject("No valid response received");
+//                     }
+//                 }
+//             );
+//         });
+
+//         console.log("Response received:", response);
+//         // After successfully flagging, re-fetch and apply highlights. No need to do it, as we are applying it instantly
+//         // const annotations = await fetchAnnotations(window.location.href);
+//         // applyExistingHighlights(annotations);
+//     } catch (error) {
+//         console.error("Error during flagText:", error);
+//     }
+
+//     hideFlagButton();
+// };
+const AI_API_URL = "http://127.0.0.1:5000/fact-check"; // AI Model API
+const BACKEND_API_URL = "http://localhost:3000/store_analysis"; // Your backend API
+
 const handleFlagClick = async () => {
     if (!selectedText) return;
     console.log("Flagging text:", selectedText);
 
     try {
-        const response = await new Promise((resolve, reject) => {
+        // ✅ Step 1: Flag the text
+        const flagResponse = await new Promise((resolve, reject) => {
             chrome.runtime.sendMessage(
                 {
                     action: "flagText",
                     selectedText,
                     pageURL: window.location.href,
-                    userId: chrome.runtime.id //  extension ID as a temporary user ID
+                    userId: chrome.runtime.id // Temporary user ID
                 },
                 (response) => {
                     if (chrome.runtime.lastError) {
                         console.error("Runtime error:", chrome.runtime.lastError.message);
                         reject("Runtime error: " + chrome.runtime.lastError.message);
                     } else if (response?.credibilityScore !== undefined) {
-                        //apply highlight as soon as flag button is clicked
                         applyHighlight(response.credibilityScore, selectedText);
-                        console.log("Flagged text successfully:");
+                        console.log("Flagged text successfully:", response);
                         resolve(response);
                     } else if (response?.error) {
                         console.error("Backend error:", response.error);
@@ -62,17 +108,66 @@ const handleFlagClick = async () => {
             );
         });
 
-        console.log("Response received:", response);
-        // After successfully flagging, re-fetch and apply highlights. No need to do it, as we are applying it instantly
-        // const annotations = await fetchAnnotations(window.location.href);
-        // applyExistingHighlights(annotations);
+        console.log("Flag Response received:", flagResponse);
+
+        // ✅ Step 2: Process text using the AI model
+        console.log("Processing text with AI model...");
+        console.log("Selected Text:", selectedText);
+        console.log("URL:", window.location.href);
+        const aiResponse = await fetch(AI_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                text: selectedText,
+                url: window.location.href,
+            }),
+        });
+
+        const aiData = await aiResponse.json();
+        console.log("AI Model Response:", aiData);
+
+        if (!aiData || aiData.error) {
+            console.error("Error from AI model:", aiData?.error || "No response");
+            return;
+        }
+
+        // ✅ Step 3: Store AI analysis in the backend database
+        console.log("Storing AI analysis in the database...");
+        if (aiData.category === "Fake") {
+            const storeResponse = await fetch(BACKEND_API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    text: selectedText,
+                    url: window.location.href,
+                    category: aiData.category,
+                    justification: aiData.justification,
+                    sources: aiData.sources,
+                    credibilityScore: flagResponse.credibilityScore, // Including credibility score
+                    userId: chrome.runtime.id, // Temporary user identifier
+                }),
+            });
+
+            const storeResult = await storeResponse.json();
+            console.log("Stored in database:", storeResult);
+
+            if (!storeResult.success) {
+                console.error("Error storing data:", storeResult.message);
+            } else {
+                console.log("Data stored successfully:", storeResult);
+            }
+        }
+
     } catch (error) {
-        console.error("Error during flagText:", error);
+        console.error("Error during flagText or AI processing:", error);
     }
 
     hideFlagButton();
 };
-
 
 
 const handleUnflagClick = (event) => {
@@ -179,54 +274,6 @@ const hideContextMenu = () => {
         contextMenu.style.display = 'none';
     }
 }
-
-// const showDiscussionPopup = (text) => {
-//     let popup = document.getElementById('discussion-popup');
-
-//     if (!popup) {
-//         popup = document.createElement('div');
-//         popup.id = 'discussion-popup';
-//         popup.classList.add('discussion-popup');
-
-//         const closeButton = document.createElement('button');
-//         closeButton.textContent = 'Close';
-//         closeButton.addEventListener('click', () => {
-//             popup.style.display = 'none';
-//         });
-//         popup.appendChild(closeButton);
-//         document.body.appendChild(popup);
-//     }
-//     popup.innerHTML = `
-//         <button id="close-popup">Close</button>
-//         <h3>Discussion</h3>
-//         <p>Text: ${text}</p>
-//         <div id="comments-section">
-
-//         </div>
-//         <textarea id="comment-input" placeholder="Add a comment..."></textarea>
-//         <button id="add-comment">Add Comment</button>
-//     `;
-//     document.getElementById('close-popup').addEventListener('click', () => {
-//         popup.style.display = 'none';
-//     });
-//     document.getElementById('add-comment').addEventListener('click', addComment);
-//     popup.style.display = 'block';
-
-//     const commentsSection = document.getElementById("comments-section");
-
-//     const comments = [
-//         { user: "User1", text: "I think this is misleading." },
-//         { user: "User2", text: "I agree, the source is questionable." },
-//     ];
-
-//     comments.forEach(comment => {
-//         const commentElement = document.createElement("div");
-//         commentElement.className = "comment";
-//         commentElement.textContent = `${comment.user}: ${comment.text}`;
-//         commentsSection.appendChild(commentElement);
-//     });
-
-// };
 
 const addComment = () => {
     const commentInput = document.getElementById('comment-input');
@@ -402,97 +449,7 @@ const newVideoLoaded = async () => {
 // Run newVideoLoaded when the page loads
 newVideoLoaded();
 
-// const showDiscussionPopup = async (text, flaggedTextId) => {
-//     let popup = document.getElementById('discussion-popup');
 
-//     if (!popup) {
-//         popup = document.createElement('div');
-//         popup.id = 'discussion-popup';
-//         popup.classList.add('discussion-popup');
-
-//         const closeButton = document.createElement('button');
-//         closeButton.textContent = 'Close';
-//         closeButton.addEventListener('click', () => {
-//             popup.style.display = 'none';
-//         });
-//         popup.appendChild(closeButton);
-
-//         const discussionContainer = document.createElement('div');
-//         discussionContainer.id = 'discussion-container';
-//         popup.appendChild(discussionContainer);
-
-//         const inputMessage = document.createElement('textarea');
-//         inputMessage.id = 'discussion-input';
-//         inputMessage.placeholder = 'Add your message...';
-//         popup.appendChild(inputMessage);
-
-//         const sendButton = document.createElement('button');
-//         sendButton.textContent = 'Send Message';
-//         sendButton.addEventListener('click', async () => {
-//             // Get the current URL of the page
-//             const url = window.location.href;
-
-//             // Send the message with the text, URL, and flaggedTextId
-//             await sendMessage(text, inputMessage.value, discussionContainer, url);
-//         });
-//         popup.appendChild(sendButton);
-
-//         document.body.appendChild(popup);
-//     }
-
-//     // Fetch existing discussion thread
-//     const response = await fetch(`http://localhost:3000/getAnnotations?url=${window.location.href}`);
-//     const flaggedTexts = await response.json();
-
-//     const flaggedText = flaggedTexts.find(ft => ft.id === flaggedTextId);
-//     if (flaggedText) {
-//         displayDiscussionThread(flaggedText.discussionThread);
-//     }
-// };
-
-// const displayDiscussionThread = (discussionThread) => {
-//     const discussionContainer = document.getElementById('discussion-container');
-//     discussionContainer.innerHTML = '';
-
-//     discussionThread.forEach(msg => {
-//         const messageDiv = document.createElement('div');
-//         messageDiv.classList.add('discussion-message');
-//         messageDiv.textContent = `${msg.userId}: ${msg.message}`;
-//         discussionContainer.appendChild(messageDiv);
-//     });
-// };
-
-
-// // Send new message to backend
-// const sendMessage = async (text, message, discussionContainer) => {
-//     if (!message.trim()) return;
-//     console.log("Sending message:", message), console.log("Text:", text), console.log("URL:", window.location.href);
-
-//     const url = window.location.href; // Get the current page URL
-
-//     try {
-//         const userId = chrome.runtime.id; // Using extension ID as user ID
-//         const response = await fetch(`http://localhost:3000/addDiscussionMessage`, {
-//             method: 'POST',
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify({ text, userId, message, url }) // Include the URL in the request
-//         });
-
-/*************  ✨ Codeium Command 🌟  *************/
-/**
- * Show the discussion popup for a given text.
- * Fetches existing discussion threads and displays them in the popup.
- * @param {string} text - The text for which to show the discussion popup.
- */
-//         if (response.ok) {
-//             const data = await response.json();
-//             const newMessage = { userId, message, timestamp: new Date().toISOString() };
-//             displayDiscussionThread([...discussionContainer.children, newMessage]);
-//         }
-//     } catch (error) {
-//         console.error("Error sending message:", error);
-//     }
-// };
 const showDiscussionPopup = async (text) => {
     let popup = document.getElementById('discussion-popup');
 
@@ -640,3 +597,142 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 
 
+// const showDiscussionPopup = async (text, flaggedTextId) => {
+//     let popup = document.getElementById('discussion-popup');
+
+//     if (!popup) {
+//         popup = document.createElement('div');
+//         popup.id = 'discussion-popup';
+//         popup.classList.add('discussion-popup');
+
+//         const closeButton = document.createElement('button');
+//         closeButton.textContent = 'Close';
+//         closeButton.addEventListener('click', () => {
+//             popup.style.display = 'none';
+//         });
+//         popup.appendChild(closeButton);
+
+//         const discussionContainer = document.createElement('div');
+//         discussionContainer.id = 'discussion-container';
+//         popup.appendChild(discussionContainer);
+
+//         const inputMessage = document.createElement('textarea');
+//         inputMessage.id = 'discussion-input';
+//         inputMessage.placeholder = 'Add your message...';
+//         popup.appendChild(inputMessage);
+
+//         const sendButton = document.createElement('button');
+//         sendButton.textContent = 'Send Message';
+//         sendButton.addEventListener('click', async () => {
+//             // Get the current URL of the page
+//             const url = window.location.href;
+
+//             // Send the message with the text, URL, and flaggedTextId
+//             await sendMessage(text, inputMessage.value, discussionContainer, url);
+//         });
+//         popup.appendChild(sendButton);
+
+//         document.body.appendChild(popup);
+//     }
+
+//     // Fetch existing discussion thread
+//     const response = await fetch(`http://localhost:3000/getAnnotations?url=${window.location.href}`);
+//     const flaggedTexts = await response.json();
+
+//     const flaggedText = flaggedTexts.find(ft => ft.id === flaggedTextId);
+//     if (flaggedText) {
+//         displayDiscussionThread(flaggedText.discussionThread);
+//     }
+// };
+
+// const displayDiscussionThread = (discussionThread) => {
+//     const discussionContainer = document.getElementById('discussion-container');
+//     discussionContainer.innerHTML = '';
+
+//     discussionThread.forEach(msg => {
+//         const messageDiv = document.createElement('div');
+//         messageDiv.classList.add('discussion-message');
+//         messageDiv.textContent = `${msg.userId}: ${msg.message}`;
+//         discussionContainer.appendChild(messageDiv);
+//     });
+// };
+
+
+// // Send new message to backend
+// const sendMessage = async (text, message, discussionContainer) => {
+//     if (!message.trim()) return;
+//     console.log("Sending message:", message), console.log("Text:", text), console.log("URL:", window.location.href);
+
+//     const url = window.location.href; // Get the current page URL
+
+//     try {
+//         const userId = chrome.runtime.id; // Using extension ID as user ID
+//         const response = await fetch(`http://localhost:3000/addDiscussionMessage`, {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify({ text, userId, message, url }) // Include the URL in the request
+//         });
+
+/*************  ✨ Codeium Command 🌟  *************/
+/**
+ * Show the discussion popup for a given text.
+ * Fetches existing discussion threads and displays them in the popup.
+ * @param {string} text - The text for which to show the discussion popup.
+ */
+//         if (response.ok) {
+//             const data = await response.json();
+//             const newMessage = { userId, message, timestamp: new Date().toISOString() };
+//             displayDiscussionThread([...discussionContainer.children, newMessage]);
+//         }
+//     } catch (error) {
+//         console.error("Error sending message:", error);
+//     }
+// };
+
+// const showDiscussionPopup = (text) => {
+//     let popup = document.getElementById('discussion-popup');
+
+//     if (!popup) {
+//         popup = document.createElement('div');
+//         popup.id = 'discussion-popup';
+//         popup.classList.add('discussion-popup');
+
+//         const closeButton = document.createElement('button');
+//         closeButton.textContent = 'Close';
+//         closeButton.addEventListener('click', () => {
+//             popup.style.display = 'none';
+//         });
+//         popup.appendChild(closeButton);
+//         document.body.appendChild(popup);
+//     }
+//     popup.innerHTML = `
+//         <button id="close-popup">Close</button>
+//         <h3>Discussion</h3>
+//         <p>Text: ${text}</p>
+//         <div id="comments-section">
+
+//         </div>
+//         <textarea id="comment-input" placeholder="Add a comment..."></textarea>
+//         <button id="add-comment">Add Comment</button>
+//     `;
+//     document.getElementById('close-popup').addEventListener('click', () => {
+//         popup.style.display = 'none';
+//     });
+//     document.getElementById('add-comment').addEventListener('click', addComment);
+//     popup.style.display = 'block';
+
+//     const commentsSection = document.getElementById("comments-section");
+
+//     const comments = [
+//         { user: "User1", text: "I think this is misleading." },
+//         { user: "User2", text: "I agree, the source is questionable." },
+//     ];
+
+//     comments.forEach(comment => {
+//         const commentElement = document.createElement("div");
+//         commentElement.className = "comment";
+//         commentElement.textContent = `${comment.user}: ${comment.text}`;
+//         commentsSection.appendChild(commentElement);
+//     });
+
+// };

@@ -7,3 +7,5 @@ venv/
 *.pyc
 *.pyo
 __pycache__/
+.venv
+models/deepfake_detection/pretrained_model

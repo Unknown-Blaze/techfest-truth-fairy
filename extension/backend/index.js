@@ -189,6 +189,45 @@ app.get('/getDiscussionThreads', async (req, res) => {
     res.json(discussionThreads);
 });
 
+// Endpoint to store AI analysis in the database
+app.post('/store_analysis', async (req, res) => {
+    const { text, url, category, justification, sources, userId } = req.body;
+    console.log("Storing AI analysis for:", text, url);
+
+    try {
+        const flaggedRef = db.collection('flaggedTexts');
+
+        // Query to find the flagged text document
+        const existingQuery = await flaggedRef
+            .where('text', '==', text)
+            .where('website', '==', url)
+            .get();
+
+        if (existingQuery.empty) {
+            return res.status(404).json({ message: "Flagged text not found" });
+        }
+
+        // Get the flagged text document ID
+        const flaggedTextId = existingQuery.docs[0].id;
+        console.log("Updating flagged text ID:", flaggedTextId);
+
+        // Update the flagged text document with AI analysis
+        await flaggedRef.doc(flaggedTextId).update({
+            AI_verification: {
+                category,
+                justification,
+                sources,
+                analyzedBy: userId,
+            },
+            lastUpdated: admin.firestore.Timestamp.now(),
+        });
+
+        res.json({ success: true, message: "AI analysis stored successfully" });
+    } catch (error) {
+        console.error("Error storing AI analysis:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
 
 
 // Start the Express server
