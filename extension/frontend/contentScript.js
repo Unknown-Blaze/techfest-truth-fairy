@@ -343,7 +343,9 @@ const applyExistingHighlights = (annotations) => {
 
         textNodes.forEach(node => {
             // 2. Split the text node and apply the highlight
+            console.log("Before Highlight:", node.textContent);
             highlightTextNode(node, annotation.text, annotation.AI_verification.score);
+            console.log("After Highlight:", parent.innerHTML);
         });
     });
 };
@@ -385,10 +387,23 @@ function findTextNodes(root, searchText) {
 // Helper function: Split text node and apply highlight
 function highlightTextNode(textNode, searchText, credibilityScore) {
     const parent = textNode.parentNode;
-    const nodeText = textNode.nodeValue;
+    let nodeText = textNode.nodeValue;
+
+
+    console.log("TextNode Content (Original):", nodeText);
+    console.log("Search Text (Original):", searchText);
+
+    if (typeof searchText !== 'string') {
+        console.error("searchText is not a string");
+        return;
+    }
+
     const index = nodeText.toLowerCase().indexOf(searchText.toLowerCase());
 
-    if (index === -1) return; // Avoid processing if text not found
+    if (index === -1) {
+        console.log("Text not found in node.");
+        return;
+    }
 
     // Split the text node into before, match, and after parts
     const beforeText = nodeText.substring(0, index);
@@ -397,6 +412,13 @@ function highlightTextNode(textNode, searchText, credibilityScore) {
 
     // Create a new span element for highlighting
     const span = document.createElement('span');
+
+    // Set a random credibility score if the original value is NaN
+    if (isNaN(credibilityScore)) {
+        credibilityScore = Math.random(); // Generate a random number between 0 and 1
+        console.warn("Credibility score was NaN, setting it to a random value:", credibilityScore);
+    }
+
     const hue = (1 - credibilityScore) * 120;
     const saturation = 100;
     const lightness = 75;
@@ -415,8 +437,8 @@ function highlightTextNode(textNode, searchText, credibilityScore) {
     if (afterText) fragment.appendChild(document.createTextNode(afterText));
 
     parent.replaceChild(fragment, textNode);
+    console.log("Node was replaced", parent.innerHTML); //See node text after replacement.
 }
-
 
 const newVideoLoaded = async () => {
     // Fetch annotations and apply highlights

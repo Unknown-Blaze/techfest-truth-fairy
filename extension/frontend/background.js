@@ -4,17 +4,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const { selectedText, pageURL, userId } = request;
     console.log("Received flagText request:", selectedText, pageURL, userId);
 
-    // Call addFlaggedText (implementation below)
     flagTextOnServer(selectedText, pageURL, userId)
-      .then(response => { // Receive credibilityScore
-        sendResponse(response); // Send back the score
+      .then(response => {
+        console.log("Sending back the response to frontend:", response);
+        sendResponse(response);
       })
       .catch(error => {
         console.error("Error handling flagText:", error);
-        sendResponse({ error: error.message }); // Send detailed error
+        sendResponse({ error: error.message });
       });
 
-    return true; // Keep the message channel open
+    return true; // Keep the message channel open for async response
   } else if (request.action === "highlightText") {
     // Process the highlight action (no need to call backend)
     const { selectedText, pageURL, userId } = request;
