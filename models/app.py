@@ -61,10 +61,10 @@ def fact_check():
         + search_context
         + "\nUser Flagged Text: "
         + flagged_text
-        +"\nTimestamp:"
-        + timestamp if timestamp is not None else "N/A"
-        + "\n"
-        + f"Article Information was derived from: {flagged_url}"
+        # +"\nTimestamp:"
+        # + timestamp if timestamp is not None else "N/A"
+        # + "\n"
+        # + f"Article Information was derived from: {flagged_url}"
     )
 
     # Make the API call correctly
@@ -77,7 +77,7 @@ def fact_check():
                 "Users have flagged this text for a possible instance of misinformation. I need you to verify if this information is indeed misinformation or if it's real."
                 "When fact-checking, ensure you cross-reference the flagged statement with multiple trusted and up-to-date sources to verify its validity. Avoid relying on a single source unless absolutely necessary."
                 "For statements regarding facts that can change over time (e.g., rankings, statistics, or leadership positions), always check if the current data contradicts the claim, but also take into account the publication date of the source to assess if the statement was true at the time of publishing."
-                "If the timestamp for the webpage is provided and not N/A, you should check whether the flagged statement is true or false as of the date it was written."
+                # "If the timestamp for the webpage is provided and not N/A, you should check whether the flagged statement is true or false as of the date it was written."
                 "There's a possibility that the user-highlighted text requires context present within the article, hence you will see the webpage linked as well to further influence your decisions."
                 "Your decision should be made after consulting the additional context provided in the prompt, which could possibly influence your final decision."
                 "Even though you consult the context, your focus is purely on validating the user flagged text."
