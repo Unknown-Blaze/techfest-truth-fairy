@@ -8,3 +8,4 @@ torch
 torchvision
 requests
 bs4
+flask_cors

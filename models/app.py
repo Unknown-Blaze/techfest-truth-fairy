@@ -10,9 +10,10 @@ from flask import Flask, request, jsonify
 from factcheck_model.rag_brave_pipeline import search_brave
 from factcheck_model.retrieve_time import get_publish_date
 from deepfake_detection.deepfake_app import model, transform, grad_cam, overlay_heatmap_on_image, device
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app)
 load_dotenv()
 
 api_key = os.getenv("OPENAI_KEY")
@@ -24,8 +25,8 @@ if api_key is None:
 @app.route("/fact-check", methods=["POST"])
 def fact_check():
     data = request.json
-    flagged_text = data.get("flagged_text", "")
-    flagged_url = data.get("flagged_url", "")
+    flagged_text = data.get("text", "")
+    flagged_url = data.get("url", "")
 
     if not flagged_text:
         return jsonify({"error": "flagged_text is required"}), 400
