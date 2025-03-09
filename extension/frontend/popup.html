@@ -1,17 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Truth Fairy</title>
-  <!-- Include Google Fonts -->
+  
+  <!-- 1. Load Poppins from Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link 
-    href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
     rel="stylesheet"
   >
-  <link rel="stylesheet" type="text/css" href="popup.css">
+
+  <!-- 2. Link to your existing popup.css if needed -->
+  <link rel="stylesheet" href="popup.css">
+
+  <style>
+    /* Use Poppins as the default font */
+    html, body {
+      font-family: 'Poppins', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Center the header content */
+    #header-content {
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* Make "Truth Fairy" bigger, bolder, with a subtle text shadow */
+    #header-content h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700; /* Use a heavier weight for emphasis */
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+
+      /* Flex properties for perfect centering */
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px; /* Space between text and fairy */
+    }
+
+    /* Slightly larger subtitle */
+    #header-content h2 {
+      font-size: 16px;
+      margin: 8px 0 0;
+      font-weight: 400;
+      opacity: 0.9;
+    }
+  </style>
 </head>
+
 <body>
+  <div id="main-container">
+    <!-- Header with gradient -->
+    <div id="header">
+      <div id="header-content">
+        <h1>
+          <!-- "Truth Fairy" + Fairy Emoji -->
+          <span>Truth Fairy</span>
+          <span style="font-size: 24px;">🧚</span>
+        </h1>
+        <h2>Misinformation & Deepfake Checker</h2>
+      </div>
+      <!-- Wave at bottom of header -->
+      <svg viewBox="0 0 500 50" preserveAspectRatio="none">
+        <path d="M0,30 C150,60 350,0 500,30 L500,0 L0,0 Z" fill="#fff"/>
+      </svg>
+    </div>
+
+    <!-- Main content -->
+    <div id="content">
+      <div id="columns">
+        <div class="column">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="#007BFF" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="M9 9h6M9 13h6M9 17h6"/>
+              <path d="M5 3h10l4 4v14a2 2 0 0 1-2 2H5
+                       a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+            </svg>
+            Text Analysis
+          </h3>
+          <p>Checks if text is misinformation and verifies if it can be confirmed.</p>
+        </div>
+
+        <div class="column">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="#007BFF" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <path d="M21 15l-5-5L5 21"></path>
+            </svg>
+            Image Analysis
+          </h3>
+          <p>Evaluates if an image is authentic or a potential deepfake.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="popup.js"></script>
 </body>
 </html>
