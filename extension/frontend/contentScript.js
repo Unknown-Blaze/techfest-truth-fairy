@@ -1071,18 +1071,24 @@ const showDiscussionPanel = async (text, justification, sources) => {
 
 // Function to fetch and display discussion threads
 // Function to fetch and display discussion threads (images)
-const fetchAndDisplayDiscussion = async (imageUrl, discussionContainer) => {
+const fetchAndDisplayDiscussion = async (text_or_image, discussionContainer) => {
     let discussionPanel = document.getElementById('discussion-panel'); // get discussion panel to append it
 
     if (!discussionPanel){
         return; // don't do anything
     }
 
+    if (text_or_image.startsWith("https:"))
+        path = "getDiscussionThreadsImage"
+    else
+        path = "getDiscussionThreads"
+    console.log(path, text_or_image)
+
     discussionContainer = document.getElementById('discussion-container'); // need to always get element from id, otherwise it's always null
     discussionContainer.innerHTML = ''; // Clear previous content
 
     try {
-        const response = await fetch(`${API_BASE_URL}/getDiscussionThreads?text=${encodeURIComponent(imageUrl)}&url=${encodeURIComponent(window.location.href)}`); //url should be for images
+        const response = await fetch(`${API_BASE_URL}/${path}?text=${encodeURIComponent(text_or_image)}&url=${encodeURIComponent(window.location.href)}`); //url should be for images
 
         if (!response.ok) {
             if (response.status === 400) { // Bad request, no messages
@@ -1190,15 +1196,19 @@ const displayDiscussionThread = (discussionThread, discussionContainer) => {
     });
     console.log("Discussion thread displayed successfully.");
 };
-const sendMessage = async (text, message, discussionContainer, url) => {
+const sendMessage = async (text_or_image, message, discussionContainer, url) => {
     if (!message.trim()) return;  // Don't send empty messages
+    if (text_or_image.startsWith("https:"))
+        path = "addDiscussionMessageToImage"
+    else
+        path = "addDiscussionMessage"
 
     try {
         const userId = chrome.runtime.id; //  extension ID as user ID
-        const response = await fetch(`${API_BASE_URL}/addDiscussionMessage`, {
+        const response = await fetch(`${API_BASE_URL}/${path}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, userId, message, url }),
+            body: JSON.stringify({ text_or_image, userId, message, url }),
         });
 
         if (!response.ok) {
