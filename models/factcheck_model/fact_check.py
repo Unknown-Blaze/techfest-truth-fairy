@@ -4,6 +4,8 @@ import os
 from dotenv import load_dotenv
 from rag_brave_pipeline import search_brave
 from retrieve_time import get_publish_date
+import json
+import re
 
 load_dotenv()
 
@@ -80,10 +82,22 @@ def fact_check():
                 "e.g. The user can highlight opinionated text, which should not proceed through your analysis and should be marked as Cannot Verify."
                 "You need to follow your response with justification of how you arrived at that conclusion."
                 "I need you to find and return the sources/links validating your justification, so users will know."
-                "The output returned needs to be strictly in the JSON format provided: {'category': Chosen one from this list ['Real', 'Fake', 'Cannot Verify'], 'justification': provided justification, 'sources': a list of sources found on the relevant topics}",
+                "The output returned needs to be strictly in the JSON format provided: {'category': 'Real'/'Fake'/'Cannot Verify', 'justification': 'text', 'sources': ['url1', 'url2']"
+                "Double check and ensure your response is returned in JSON."
             },
             {"role": "user", "content": full_context},
         ],
     )
 
-    return fact_check_completion.choices[0].message.content
+    response_content = fact_check_completion.choices[0].message.content
+
+    cleaned_response = re.sub(r"```json\s*|\s*```", "", response_content).strip()
+
+    try:
+        response_json = json.loads(cleaned_response)  # Validate JSON
+    except json.JSONDecodeError as e:
+        print("Error parsing OpenAI response:", e)
+        print("Raw response:", response_content)
+        return jsonify({"error": "Invalid JSON from AI"}), 500
+
+    return jsonify(response_json)  # Return valid JSON

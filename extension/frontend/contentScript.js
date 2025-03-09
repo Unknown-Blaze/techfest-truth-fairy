@@ -239,6 +239,8 @@ const handleFlagClick = async (event) => {
         }
     } catch (error) {
         console.error("Error during flagText or AI processing:", error);
+        hideProcessingButton();
+        showErrorMessage(error);
     }
     hideProcessingButton();
 };
@@ -311,7 +313,83 @@ const handleImageFlag = async (imageElement) => {
 };
 
 
-// Lastly to make sure that the code is nice, add the css
+function showErrorMessage(error) {
+    // Create a custom modal element
+    const modal = document.createElement('div');
+    modal.id = 'error-modal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '9999';
+    modal.style.opacity = '0';
+    modal.style.transition = 'opacity 0.3s ease'; // Fade in effect
+
+    // Modal content
+    const modalContent = document.createElement('div');
+    modalContent.style.backgroundColor = '#fff';
+    modalContent.style.padding = '40px';
+    modalContent.style.borderRadius = '15px';
+    modalContent.style.maxWidth = '400px';
+    modalContent.style.width = '100%';
+    modalContent.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+    modalContent.style.textAlign = 'center';
+    modalContent.style.fontFamily = "Garamond";
+
+    // Title and button style
+    const modalTitle = document.createElement('h2');
+    modalTitle.textContent = `Error: Something went wrong while processing your request.`;
+    modalTitle.style.color = '#333';
+    modalTitle.style.marginBottom = '20px';
+
+    const modalText = document.createElement('p');
+    modalText.textContent = 'Please try again.';
+    modalText.style.color = '#777';
+    modalText.style.marginBottom = '30px';
+
+    const tryAgainBtn = document.createElement('button');
+    tryAgainBtn.textContent = 'Dismiss';
+    tryAgainBtn.style.padding = '10px 20px';
+    tryAgainBtn.style.fontSize = '16px';
+    tryAgainBtn.style.backgroundColor = '#007bff';
+    tryAgainBtn.style.color = '#fff';
+    tryAgainBtn.style.border = 'none';
+    tryAgainBtn.style.borderRadius = '5px';
+    tryAgainBtn.style.cursor = 'pointer';
+    tryAgainBtn.style.transition = 'background-color 0.3s ease';
+
+    // Hover effect for the button
+    tryAgainBtn.addEventListener('mouseover', () => {
+        tryAgainBtn.style.backgroundColor = '#0056b3';
+    });
+
+    tryAgainBtn.addEventListener('mouseout', () => {
+        tryAgainBtn.style.backgroundColor = '#007bff';
+    });
+
+    tryAgainBtn.addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+
+    // Append content to modal
+    modalContent.appendChild(modalTitle);
+    modalContent.appendChild(modalText);
+    modalContent.appendChild(tryAgainBtn);
+    modal.appendChild(modalContent);
+
+    // Append modal to body
+    document.body.appendChild(modal);
+
+    // Fade in the modal
+    setTimeout(() => {
+        modal.style.opacity = '1';
+    }, 10);
+}
 
 
 const handleUnflagClick = (event) => {
