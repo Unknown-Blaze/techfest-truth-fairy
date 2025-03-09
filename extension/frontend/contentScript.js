@@ -103,7 +103,7 @@ const applyHighlight = (credibilityScore, justification, sources, text, category
     const range = selection.getRangeAt(0);
     const span = document.createElement('span');
 
-    const hue = (1 - credibilityScore) * 120;
+    const hue = category == "Fake" ? 0 : (category == "Real" ? 100 : 60);
     const saturation = 100;
     const lightness = 75;
 
@@ -841,14 +841,14 @@ function highlightTextNode(textNode, searchText, credibilityScore, justification
     }
     console.log("Category: ", category)
     if (category === "Fake") {
-        credibilityScore = 90;
+        hue_color = 0;
     }else if (category === "Real") {
-        credibilityScore = 10;
+        hue_color = 100;
     }else{
-        credibilityScore = 50;
+        hue_color = 60;
     }
 
-    const hue = (1 - credibilityScore) * 120;
+    const hue = hue_color;
     const saturation = 100;
     const lightness = 75;
     span.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
