@@ -419,3 +419,16 @@
 	margin-bottom: 5px;
 	line-height: 1.6;
 }
+
+#flag-image-button {
+    position: absolute;
+    z-index: 10000;
+    display: none; /* Initially hidden */
+    cursor: pointer;
+    padding: 5px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+
+  
