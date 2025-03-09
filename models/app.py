@@ -89,6 +89,7 @@ def fact_check():
                 "e.g. The user can highlight opinionated text, which should not proceed through your analysis and should be marked as Cannot Verify."
                 "You need to follow your response with justification of how you arrived at that conclusion."
                 "I need you to find and return the sources/links validating your justification, so users will know."
+                "Please make your justification not more than 3 sentences long."
                 "The output returned needs to be strictly in the JSON format provided: {'category': Chosen one from this list ['Real', 'Fake', 'Cannot Verify'], 'justification': provided justification, 'sources': a list of sources found on the relevant topics}",
             },
             {"role": "user", "content": full_context},

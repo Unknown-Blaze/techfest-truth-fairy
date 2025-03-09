@@ -89,6 +89,38 @@ const AI_API_URL = "http://127.0.0.1:5000/fact-check"; // AI Model API
 const IMAGE_API_URL = "http://127.0.0.1:5000/predict" // Image Model API
 const BACKEND_API_URL = "http://localhost:3000/store_analysis"; // Your backend API
 
+const hideContextMenu = () => {
+    let contextMenu = document.getElementById('credibility-context-menu');
+    if (contextMenu) {
+        contextMenu.remove();
+    }
+}
+
+const applyHighlight = (credibilityScore, justification, text) => {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    const span = document.createElement('span');
+
+    const hue = (1 - credibilityScore) * 120;
+    const saturation = 100;
+    const lightness = 75;
+
+    span.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    span.title = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
+    span.classList.add('credibility-highlight');
+    span.dataset.originalText = text; // Store the original text
+    console.log("applyHighlight justify: ", justification);
+    addContextMenu(span, justification);
+
+    try {
+        range.surroundContents(span);
+        selection.removeAllRanges();
+    } catch (e) {
+        console.error("Error surrounding contents", e)
+    }
+};
+
 const handleFlagClick = async (event) => {
     if (!selectedText) return;
 
@@ -386,31 +418,6 @@ document.addEventListener('mouseover', (event) => {
 
 
 // Apply highlight with correct credibility score and add context menu (No changes)
-const applyHighlight = (credibilityScore, justification, text) => {
-    const selection = window.getSelection();
-    if (selection.rangeCount === 0) return;
-    const range = selection.getRangeAt(0);
-    const span = document.createElement('span');
-
-    const hue = (1 - credibilityScore) * 120;
-    const saturation = 100;
-    const lightness = 75;
-
-    span.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-    span.title = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
-    span.classList.add('credibility-highlight');
-    span.dataset.originalText = text; // Store the original text
-    console.log("applyHighlight justify: ", justification);
-    addContextMenu(span, justification);
-
-    try {
-        range.surroundContents(span);
-        selection.removeAllRanges();
-    } catch (e) {
-        console.error("Error surrounding contents", e)
-    }
-
-};
 
 // Apply highlight for images
 const applyImageHighlight = (prediction, imageElement) => {
@@ -496,48 +503,53 @@ const applyImageHighlight = (prediction, imageElement) => {
 // };
 
 //helper function to add context menu
-const addContextMenu = (span, justification) => {
-    console.log("add context menu justification: ", justification);
+const addContextMenu = (span, justification, sources) => {
     span.addEventListener('contextmenu', (event) => {
+        console.log("add context menu justification: ", justification);
         event.preventDefault();
 
-        let contextMenu = document.getElementById('credibility-context-menu');
-        if (!contextMenu) {
-            contextMenu = document.createElement('div');
-            contextMenu.id = 'credibility-context-menu';
-            contextMenu.classList.add('credibility-context-menu');
-
-            // Create credibility score display
-            const credibilityScore = Math.random(); // Random number between 0 and 1
-            const credibilityDisplay = document.createElement('div');
-            credibilityDisplay.textContent = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
-            credibilityDisplay.classList.add('context-menu-item');
-            contextMenu.appendChild(credibilityDisplay);
-
-            // Create reason display
-            const reasonDisplay = document.createElement('div');
-            reasonDisplay.textContent = justification || 'No justification provided';
-            reasonDisplay.classList.add('context-menu-item');
-            contextMenu.appendChild(reasonDisplay);
-
-            // Create discuss button
-            const discussOption = document.createElement('button'); // Use a button for better styling
-            discussOption.textContent = 'Discuss';
-            discussOption.classList.add('context-menu-button'); // Different class for button
-            discussOption.addEventListener('click', () => {
-                showDiscussionPanel(span.dataset.originalText); // Show discussion panel
-                hideContextMenu();
-            });
-            contextMenu.appendChild(discussOption);
-
-            document.body.appendChild(contextMenu);
+        // First, remove any existing context menu
+        let existingContextMenu = document.getElementById('credibility-context-menu');
+        if (existingContextMenu) {
+            existingContextMenu.remove();
         }
+
+        // Now, create the context menu (every time)
+        let contextMenu = document.createElement('div');
+        contextMenu.id = 'credibility-context-menu';
+        contextMenu.classList.add('credibility-context-menu');
+
+        // Create credibility score display
+        const credibilityScore = Math.random(); // Random number between 0 and 1
+        const credibilityDisplay = document.createElement('div');
+        credibilityDisplay.textContent = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
+        credibilityDisplay.classList.add('context-menu-item');
+        contextMenu.appendChild(credibilityDisplay);
+
+        // Create reason display
+        const reasonDisplay = document.createElement('div');
+        reasonDisplay.textContent = justification || 'No justification provided';
+        reasonDisplay.classList.add('context-menu-item');
+        contextMenu.appendChild(reasonDisplay);
+
+        // Create discuss button
+        const discussOption = document.createElement('button'); // Use a button for better styling
+        discussOption.textContent = 'Discuss';
+        discussOption.classList.add('context-menu-button'); // Different class for button
+        discussOption.addEventListener('click', () => {
+            showDiscussionPanel(span.dataset.originalText); // Show discussion panel
+            hideContextMenu(); // hide not needed
+        });
+        contextMenu.appendChild(discussOption);
+
+        document.body.appendChild(contextMenu);
 
         contextMenu.style.left = `${event.pageX}px`;
         contextMenu.style.top = `${event.pageY}px`;
         contextMenu.style.display = 'block';
     });
-    //Hiding the context menu
+
+    //Hiding the context menu (click outside to hide)
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.credibility-context-menu')) {
             hideContextMenu();
@@ -553,13 +565,6 @@ const removeHighlight = (span) => {
     }
     parent.removeChild(span);
 };
-
-const hideContextMenu = () => {
-    let contextMenu = document.getElementById('credibility-context-menu');
-    if (contextMenu) {
-        contextMenu.style.display = 'none';
-    }
-}
 
 const addComment = () => {
     const commentInput = document.getElementById('comment-input');
