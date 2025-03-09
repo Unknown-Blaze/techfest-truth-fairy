@@ -534,7 +534,7 @@ const addContextMenu = (span, justification, sources, text, category) => {
         reasonDisplay.textContent = justification || 'No justification provided';
         reasonDisplay.classList.add('context-menu-item');
         contextMenu.appendChild(reasonDisplay);
-        if (category !== "unverifiable") {
+        if (category === "Fake") {
             // Create discuss button
             const discussOption = document.createElement('button'); // Use a button for better styling
             discussOption.textContent = 'Discuss';
