@@ -245,14 +245,15 @@ const handleFlagClick = async (event) => {
 
 const BACKEND_API_URL2 = "http://localhost:3000/flagImage";
 const handleImageFlag = async (imageElement) => {
-    console.log("Processing image:", imageElement.src);
-
+    console.log("imageElement: ", imageElement);
+    console.log("handle image flag");
     hideFlagButton();
     showProcessingButton();
 
     try {
         // Step 1: Send image URL to AI for analysis
         console.log("Processing image with AI model...");
+
         const aiResponse = await fetch(IMAGE_API_URL, {
             method: "POST",
             headers: {
@@ -299,7 +300,7 @@ const handleImageFlag = async (imageElement) => {
         }
 
         // Step 3: Highlight image based on AI prediction
-        applyImageHighlight(aiData.prediction, imageElement);
+        applyImageHighlight(aiData.prediction, imageElement, imageElement.src);
 
     } catch (error) {
         console.error("Error during image processing:", error);
@@ -307,6 +308,9 @@ const handleImageFlag = async (imageElement) => {
 
     hideProcessingButton();
 };
+
+
+// Lastly to make sure that the code is nice, add the css
 
 
 const handleUnflagClick = (event) => {
@@ -346,7 +350,9 @@ const highlightFlaggedImage = (imagePrediction, imageUrl) => {
         const normalizedFlaggedUrl = new URL(imageUrl).href;
 
         if (normalizedImageSrc === normalizedFlaggedUrl) {
-            applyImageHighlight(imagePrediction, image);
+            // The key line!
+            console.log(`Highlighting image: ${normalizedImageSrc}`);
+            applyImageHighlight(imagePrediction, image, normalizedImageSrc); // Pass URL here
         }
     });
 };
@@ -364,26 +370,12 @@ document.addEventListener('mouseup', (event) => {
     }
 });
 
-document.addEventListener('mouseover', (event) => {
-    const target = event.target;
-
-    // Ensure the target is an image
-    if (target.tagName === 'IMG') {
-        isHoveringImage = true;
-        lastHoveredImage = target; // Store the last hovered image
-        const rect = target.getBoundingClientRect();
-        const buttonX = rect.right + window.scrollX + 5;
-        const buttonY = rect.top + window.scrollY - 30;
-        showFlagButton(buttonX, buttonY);
-        clearTimeout(flagButtonTimeout);
-    } else if (!target.closest('#flag-text-button') && isHoveringImage) {
-        flagButtonTimeout = setTimeout(() => {
-            lastHoveredImage = null;
-            isHoveringImage = false;
-            hideFlagButton();
-        }, 1000);
+function hideImageContextMenu() {
+    let contextMenu = document.getElementById('credibility-image-context-menu');
+    if (contextMenu) {
+        contextMenu.remove();
     }
-});
+}
 
 // let hoverTimeout;
 
@@ -420,7 +412,9 @@ document.addEventListener('mouseover', (event) => {
 // Apply highlight with correct credibility score and add context menu (No changes)
 
 // Apply highlight for images
-const applyImageHighlight = (prediction, imageElement) => {
+// Apply highlight for images
+const applyImageHighlight = (prediction, imageElement, imageUrl) => {
+    console.log("Apply Image highlight with: ", imageUrl);
     if (!imageElement) return;
 
     // Calculate HSL color based on credibility score
@@ -432,6 +426,9 @@ const applyImageHighlight = (prediction, imageElement) => {
     // Apply a colored border to the image
     imageElement.style.border = `4px solid ${highlightColor}`;
     imageElement.style.borderRadius = "5px";
+
+    // Set tooltip for credibility score
+    imageElement.title = prediction;
 
     // Set tooltip for credibility score
     imageElement.title = prediction
@@ -472,9 +469,13 @@ const applyImageHighlight = (prediction, imageElement) => {
     wrapper.style.display = "inline-block";
     wrapper.appendChild(imageElement.cloneNode(true)); // Clone the image
     wrapper.appendChild(overlay);
-    wrapper.appendChild(label)
+    wrapper.appendChild(label);
 
+    // Make sure to attach context menu
+
+    addImageContextMenu(wrapper, prediction, imageUrl);
     // Replace the original image with the wrapped version
+
     imageElement.replaceWith(wrapper);
 };
 
@@ -530,6 +531,65 @@ const addContextMenu = (span, justification, sources, text) => {
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.credibility-context-menu')) {
             hideContextMenu();
+        }
+    });
+}
+
+//Modified add Image context menu.
+const addImageContextMenu = (span, prediction, imageUrl) => {
+    span.addEventListener('contextmenu', (event) => {
+        console.log("imageUrl image context menu: ", imageUrl);
+        event.stopImmediatePropagation(); // This is important!
+        event.preventDefault();
+
+        // First, remove any existing context menu
+        let existingContextMenu = document.getElementById('credibility-image-context-menu');
+        if (existingContextMenu) {
+            existingContextMenu.remove();
+        }
+
+        // Now, create the context menu (every time)
+        let contextMenu = document.createElement('div');
+        contextMenu.id = 'credibility-image-context-menu';
+        contextMenu.classList.add('credibility-context-menu');
+
+        // Image
+        const image = document.createElement('img');
+        image.src = imageUrl;
+        image.style.width = '100px';
+        image.style.height = '100px';
+        contextMenu.appendChild(image)
+
+        // Credibility Score
+
+        const credibilityScore = prediction;
+        const credibilityDisplay = document.createElement('div');
+        credibilityDisplay.textContent = `Credibility Score: ${credibilityScore}%`;
+        credibilityDisplay.classList.add('context-menu-item');
+        contextMenu.appendChild(credibilityDisplay);
+
+        // Create discuss button
+        const discussOption = document.createElement('button'); // Use a button for better styling
+        discussOption.textContent = 'Discuss';
+        discussOption.classList.add('context-menu-button'); // Different class for button
+        discussOption.addEventListener('click', () => {
+            showImageDiscussionPanel(imageUrl, "fake image", "fake images"); // Pass the image Url
+
+            hideImageContextMenu(); // hide not needed
+        });
+        contextMenu.appendChild(discussOption);
+
+        document.body.appendChild(contextMenu);
+
+        contextMenu.style.left = `${event.pageX}px`;
+        contextMenu.style.top = `${event.pageY}px`;
+        contextMenu.style.display = 'block';
+    });
+
+    //Hiding the context menu (click outside to hide)
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.credibility-image-context-menu')) {
+            hideImageContextMenu();
         }
     });
 }
@@ -735,6 +795,129 @@ const newVideoLoaded = async () => {
 
 // Run newVideoLoaded when the page loads
 newVideoLoaded();
+
+const showImageDiscussionPanel = async (imageUrl, justification, sources) => {
+    // Check if a discussion panel exists and delete it
+    discussionPanel = document.getElementById('discussion-panel');
+    if (discussionPanel) {
+        discussionPanel.remove();
+    }
+
+    discussionPanel = document.createElement('div');
+    discussionPanel.id = 'discussion-panel';
+    discussionPanel.classList.add('discussion-panel');
+
+    // Container for header (close button and refresh button)
+    const header = document.createElement('div');
+    header.classList.add('discussion-header');
+    discussionPanel.appendChild(header);
+
+    // Close button
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Close';
+    closeButton.addEventListener('click', () => {
+        discussionPanel.style.display = 'none'; // Hide the panel
+    });
+    header.appendChild(closeButton);
+
+    // Refresh button
+    const refreshButton = document.createElement('button');
+    refreshButton.textContent = 'Refresh';
+    refreshButton.addEventListener('click', async () => {
+        // Clear existing discussion container before re-fetching
+        const discussionContainer = document.getElementById('discussion-container');
+        if (discussionContainer) {
+            discussionContainer.innerHTML = ''; // Clear current content
+        }
+        // Re-fetch and display the discussion
+        await fetchAndDisplayDiscussion(imageUrl, discussionContainer);
+    });
+    header.appendChild(refreshButton);
+
+    // Display the image
+    const imageElement = document.createElement('img');
+    imageElement.src = imageUrl;
+    imageElement.style.maxWidth = '200px'; // Limit image width
+    imageElement.style.maxHeight = '200px'; // Limit image height
+    discussionPanel.appendChild(imageElement);
+
+    // Create a title for the text
+    const title = document.createElement('h3');
+    title.textContent = `Discussion: ${imageUrl}`;
+    discussionPanel.appendChild(title);
+
+    // Create a container for justification and sources
+    const infoContainer = document.createElement('div');
+    infoContainer.classList.add('discussion-info-container');
+    discussionPanel.appendChild(infoContainer);
+
+    // Justification
+    const justificationContainer = document.createElement('div');
+    justificationContainer.classList.add('info-item', 'justification');
+    const justificationTitle = document.createElement('strong');
+    justificationTitle.textContent = 'Justification: ';
+    justificationContainer.appendChild(justificationTitle);
+    const justificationText = document.createElement('span');
+    justificationText.textContent = justification || 'No justification provided.';
+    justificationContainer.appendChild(justificationText);
+    infoContainer.appendChild(justificationContainer);
+
+    // Sources (Numbered List)
+    const sourcesContainer = document.createElement('div');
+    sourcesContainer.classList.add('info-item', 'sources');
+    const sourcesTitle = document.createElement('strong');
+    sourcesTitle.textContent = 'Sources: ';
+    sourcesContainer.appendChild(sourcesTitle);
+
+    // Create an ordered list for sources (numbered)
+    const sourcesList = document.createElement('ol');
+    if (sources && Array.isArray(sources)) {
+        sources.forEach(source => {
+            const listItem = document.createElement('li');
+            listItem.textContent = source;
+            sourcesList.appendChild(listItem);
+        });
+    } else {
+        const noSources = document.createElement('div');
+        noSources.textContent = 'No sources provided.';
+        sourcesList.appendChild(noSources);
+    }
+    sourcesContainer.appendChild(sourcesList);
+    infoContainer.appendChild(sourcesContainer);
+
+    const discussionContainer = document.createElement('div');
+    discussionContainer.id = 'discussion-container';
+    discussionPanel.appendChild(discussionContainer);
+
+    // Input for new messages
+    const inputMessage = document.createElement('textarea');
+    inputMessage.id = 'discussion-input';
+    inputMessage.placeholder = 'Add your message...';
+    discussionPanel.appendChild(inputMessage);
+
+    // Send button
+    const sendButton = document.createElement('button');
+    sendButton.id = 'send-button'; // Add an ID
+    sendButton.textContent = 'Send Message';
+    sendButton.addEventListener('click', async () => {
+        const url = window.location.href;
+        await sendMessage(imageUrl, inputMessage.value, discussionContainer, url); //Note the param is imageUrl here
+    });
+    discussionPanel.appendChild(sendButton);
+
+    // Resizable handle (div)
+    const resizer = document.createElement('div');
+    resizer.id = 'panel-resizer';
+    discussionPanel.appendChild(resizer);
+
+    // Add event listeners for resizing
+    resizer.addEventListener('mousedown', initResize, false);
+
+    document.body.appendChild(discussionPanel); // Add to the DOM *once*
+    fetchAndDisplayDiscussion(imageUrl, discussionContainer); // Note the param is imageUrl here
+    discussionPanel.style.display = 'block';
+};
+
 const showDiscussionPanel = async (text, justification, sources) => {
     // Check if a discussion panel exists and delete it
     discussionPanel = document.getElementById('discussion-panel');
@@ -850,7 +1033,8 @@ const showDiscussionPanel = async (text, justification, sources) => {
 };
 
 // Function to fetch and display discussion threads
-const fetchAndDisplayDiscussion = async (text, discussionContainer) => {
+// Function to fetch and display discussion threads (images)
+const fetchAndDisplayDiscussion = async (imageUrl, discussionContainer) => {
     let discussionPanel = document.getElementById('discussion-panel'); // get discussion panel to append it
 
     if (!discussionPanel){
@@ -861,7 +1045,8 @@ const fetchAndDisplayDiscussion = async (text, discussionContainer) => {
     discussionContainer.innerHTML = ''; // Clear previous content
 
     try {
-        const response = await fetch(`${API_BASE_URL}/getDiscussionThreads?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`);
+        const response = await fetch(`${API_BASE_URL}/getDiscussionThreads?text=${encodeURIComponent(imageUrl)}&url=${encodeURIComponent(window.location.href)}`); //url should be for images
+
         if (!response.ok) {
             if (response.status === 400) { // Bad request, no messages
                 const noMessages = document.createElement('div');
