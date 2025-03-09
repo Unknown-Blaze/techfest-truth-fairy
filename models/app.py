@@ -18,6 +18,11 @@ app = Flask(__name__)
 CORS(app)
 load_dotenv()
 
+# Makes the request from a web browser client instead of our system, bypassing restrictions
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+}
+
 api_key = os.getenv("OPENAI_KEY")
 if api_key is None:
     raise ValueError(
@@ -105,7 +110,7 @@ def predict():
 
     image_url = request.json['imageUrl']
     try:
-        response = requests.get(image_url)
+        response = requests.get(image_url, headers=headers)
         if response.status_code != 200:
             return jsonify({'error': 'Failed to download image'}), 400
         
