@@ -1186,7 +1186,7 @@ const displayDiscussionThread = (discussionThread, discussionContainer) => {
         const timestampElement = document.createElement('div');
         timestampElement.classList.add('timestamp');
         // Handle possible missing timestamps more gracefully
-        const timestamp = messageObj.timestamp ? new Date(messageObj.timestamp).toLocaleString() : 'No timestamp';
+        const timestamp = messageObj.timestamp ? new Date(messageObj.timestamp._seconds * 1000).toLocaleString() : 'No timestamp';
         timestampElement.textContent = timestamp;
 
         messageElement.appendChild(userElement);

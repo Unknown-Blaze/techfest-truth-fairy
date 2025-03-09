@@ -118,13 +118,13 @@ app.get('/getAnnotations', async (req, res) => {
 
 // Endpoint to add a discussion message for a flagged text
 app.post('/addDiscussionMessage', async (req, res) => {
-    const { text, userId, message, url } = req.body;
+    const { text_or_image, userId, message, url } = req.body;
 
     // First, check if the flagged text document exists based on the text or url fields
     const flaggedRef = db.collection('flaggedTexts');
 
     // Test querying by only the 'text' field first to debug
-    const existingQuery = await flaggedRef.where('text', '==', text).get();
+    const existingQuery = await flaggedRef.where('text', '==', text_or_image).get();
     console.log("Query by text result:", existingQuery);
 
     // Test querying by only the 'url' field
@@ -161,7 +161,7 @@ app.post('/addDiscussionMessage', async (req, res) => {
     });
     console.log("Discussion thread updated");
 
-    res.json({ message: "Message added to discussion", flaggedTextId });
+    res.json({ message: "Message added to discussion", flaggedTextId, timestamp: (new Date(newMessage.timestamp._seconds * 1000)).toLocaleString()});
 });
 
 app.post('/addDiscussionMessageToImage', async (req, res) => {
@@ -209,7 +209,7 @@ app.post('/addDiscussionMessageToImage', async (req, res) => {
     });
     console.log("Discussion thread updated");
 
-    res.json({ message: "Message added to discussion", flaggedImageId });
+    res.json({ message: "Message added to discussion", flaggedImageId, timestamp: (new Date(newMessage.timestamp._seconds * 1000)).toLocaleString()});
 });
 
 app.get('/getDiscussionThreads', async (req, res) => {
