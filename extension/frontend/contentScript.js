@@ -300,7 +300,8 @@ const handleImageFlag = async (imageElement) => {
         }
 
         // Step 3: Highlight image based on AI prediction
-        applyImageHighlight(aiData.prediction, imageElement, imageElement.src);
+        console.log("handle image flag: ", aiData.heatmap_image)
+        applyImageHighlight(aiData.prediction, imageElement, imageElement.src, aiData.heatmap_image);
 
     } catch (error) {
         console.error("Error during image processing:", error);
@@ -333,7 +334,7 @@ const fetchFlaggedImages = async () => {
 
         // Highlight the flagged images
         flaggedImages.forEach((imageData) => {
-            highlightFlaggedImage(imageData.prediction, imageData.imageUrl);
+            highlightFlaggedImage(imageData.prediction, imageData.imageUrl, imageData.heatmap_image);
         });
     } catch (error) {
         console.error("Error fetching flagged images:", error);
@@ -341,7 +342,7 @@ const fetchFlaggedImages = async () => {
 };
 
 // Highlight flagged image based on URL
-const highlightFlaggedImage = (imagePrediction, imageUrl) => {
+const highlightFlaggedImage = (imagePrediction, imageUrl, heatmap_image) => {
     const images = document.querySelectorAll("img");
 
     images.forEach((image) => {
@@ -352,7 +353,7 @@ const highlightFlaggedImage = (imagePrediction, imageUrl) => {
         if (normalizedImageSrc === normalizedFlaggedUrl) {
             // The key line!
             console.log(`Highlighting image: ${normalizedImageSrc}`);
-            applyImageHighlight(imagePrediction, image, normalizedImageSrc); // Pass URL here
+            applyImageHighlight(imagePrediction, image, normalizedImageSrc, heatmap_image); // Pass URL here
         }
     });
 };
@@ -367,6 +368,27 @@ document.addEventListener('mouseup', (event) => {
         showFlagButton(rect.right + window.scrollX + 5, rect.top + window.scrollY - 30);
     } else {
         hideFlagButton();
+    }
+});
+
+document.addEventListener('mouseover', (event) => {
+    const target = event.target;
+
+    // Ensure the target is an image
+    if (target.tagName === 'IMG') {
+        isHoveringImage = true;
+        lastHoveredImage = target; // Store the last hovered image
+        const rect = target.getBoundingClientRect();
+        const buttonX = rect.right + window.scrollX + 5;
+        const buttonY = rect.top + window.scrollY - 30;
+        showFlagButton(buttonX, buttonY);
+        clearTimeout(flagButtonTimeout);
+    } else if (!target.closest('#flag-text-button') && isHoveringImage) {
+        flagButtonTimeout = setTimeout(() => {
+            lastHoveredImage = null;
+            isHoveringImage = false;
+            hideFlagButton();
+        }, 1000);
     }
 });
 
@@ -413,7 +435,8 @@ function hideImageContextMenu() {
 
 // Apply highlight for images
 // Apply highlight for images
-const applyImageHighlight = (prediction, imageElement, imageUrl) => {
+const applyImageHighlight = (prediction, imageElement, imageUrl, heatmap_image) => {
+    console.log("Heatmap image apply image highlight BEFOREEEE", heatmap_image);
     console.log("Apply Image highlight with: ", imageUrl);
     if (!imageElement) return;
 
@@ -472,8 +495,8 @@ const applyImageHighlight = (prediction, imageElement, imageUrl) => {
     wrapper.appendChild(label);
 
     // Make sure to attach context menu
-
-    addImageContextMenu(wrapper, prediction, imageUrl);
+    console.log("Heatmap image apply image highlight AFTERRRR", heatmap_image);
+    addImageContextMenu(wrapper, prediction, imageUrl, heatmap_image);
     // Replace the original image with the wrapped version
 
     imageElement.replaceWith(wrapper);
@@ -536,9 +559,9 @@ const addContextMenu = (span, justification, sources, text) => {
 }
 
 //Modified add Image context menu.
-const addImageContextMenu = (span, prediction, imageUrl) => {
+const addImageContextMenu = (span, prediction, imageUrl, heatmap_image) => {
     span.addEventListener('contextmenu', (event) => {
-        console.log("imageUrl image context menu: ", imageUrl);
+        console.log("add image context menu: ", heatmap_image);
         event.stopImmediatePropagation(); // This is important!
         event.preventDefault();
 
@@ -556,7 +579,7 @@ const addImageContextMenu = (span, prediction, imageUrl) => {
         // Image
         const image = document.createElement('img');
         image.src = imageUrl;
-        image.style.width = '100px';
+        image.style.width = '80%';
         image.style.height = '100px';
         contextMenu.appendChild(image)
 
@@ -573,7 +596,7 @@ const addImageContextMenu = (span, prediction, imageUrl) => {
         discussOption.textContent = 'Discuss';
         discussOption.classList.add('context-menu-button'); // Different class for button
         discussOption.addEventListener('click', () => {
-            showImageDiscussionPanel(imageUrl, "fake image", "fake images"); // Pass the image Url
+            showImageDiscussionPanel(imageUrl, heatmap_image); // Pass the image Url
 
             hideImageContextMenu(); // hide not needed
         });
@@ -796,7 +819,7 @@ const newVideoLoaded = async () => {
 // Run newVideoLoaded when the page loads
 newVideoLoaded();
 
-const showImageDiscussionPanel = async (imageUrl, justification, sources) => {
+const showImageDiscussionPanel = async (imageUrl, heatmap_image) => {
     // Check if a discussion panel exists and delete it
     discussionPanel = document.getElementById('discussion-panel');
     if (discussionPanel) {
@@ -834,6 +857,11 @@ const showImageDiscussionPanel = async (imageUrl, justification, sources) => {
     });
     header.appendChild(refreshButton);
 
+    // Create a title for the text
+    const title = document.createElement('h3');
+    title.textContent = `Discussion:`;
+    discussionPanel.appendChild(title);
+
     // Display the image
     const imageElement = document.createElement('img');
     imageElement.src = imageUrl;
@@ -841,49 +869,26 @@ const showImageDiscussionPanel = async (imageUrl, justification, sources) => {
     imageElement.style.maxHeight = '200px'; // Limit image height
     discussionPanel.appendChild(imageElement);
 
-    // Create a title for the text
-    const title = document.createElement('h3');
-    title.textContent = `Discussion: ${imageUrl}`;
-    discussionPanel.appendChild(title);
-
     // Create a container for justification and sources
     const infoContainer = document.createElement('div');
     infoContainer.classList.add('discussion-info-container');
     discussionPanel.appendChild(infoContainer);
 
-    // Justification
+    // Justification (Now includes heatmap image)
     const justificationContainer = document.createElement('div');
     justificationContainer.classList.add('info-item', 'justification');
+
     const justificationTitle = document.createElement('strong');
     justificationTitle.textContent = 'Justification: ';
     justificationContainer.appendChild(justificationTitle);
-    const justificationText = document.createElement('span');
-    justificationText.textContent = justification || 'No justification provided.';
-    justificationContainer.appendChild(justificationText);
+
+    // Create image element for heatmap
+    const imageElementJ = document.createElement('img');
+    imageElementJ.src = "data:image/jpeg;base64, " + heatmap_image; // Set src to base64 data
+    imageElementJ.style.maxWidth = '200px'; // Limit image width
+    imageElementJ.style.maxHeight = '200px'; // Limit image height
+    justificationContainer.appendChild(imageElementJ);
     infoContainer.appendChild(justificationContainer);
-
-    // Sources (Numbered List)
-    const sourcesContainer = document.createElement('div');
-    sourcesContainer.classList.add('info-item', 'sources');
-    const sourcesTitle = document.createElement('strong');
-    sourcesTitle.textContent = 'Sources: ';
-    sourcesContainer.appendChild(sourcesTitle);
-
-    // Create an ordered list for sources (numbered)
-    const sourcesList = document.createElement('ol');
-    if (sources && Array.isArray(sources)) {
-        sources.forEach(source => {
-            const listItem = document.createElement('li');
-            listItem.textContent = source;
-            sourcesList.appendChild(listItem);
-        });
-    } else {
-        const noSources = document.createElement('div');
-        noSources.textContent = 'No sources provided.';
-        sourcesList.appendChild(noSources);
-    }
-    sourcesContainer.appendChild(sourcesList);
-    infoContainer.appendChild(sourcesContainer);
 
     const discussionContainer = document.createElement('div');
     discussionContainer.id = 'discussion-container';
@@ -919,7 +924,11 @@ const showImageDiscussionPanel = async (imageUrl, justification, sources) => {
 };
 
 const showDiscussionPanel = async (text, justification, sources) => {
-    if (!discussionPanel) {
+    discussionPanel = document.getElementById('discussion-panel');
+    if (discussionPanel) {
+        discussionPanel.remove();
+    }
+
         // Create the panel if it doesn't exist
         discussionPanel = document.createElement('div');
         discussionPanel.id = 'discussion-panel';
@@ -1047,27 +1056,16 @@ const showDiscussionPanel = async (text, justification, sources) => {
         bottom_header.appendChild(refreshButton);
 
         // Resizable handle (div)
-        const resizer = document.createElement('div');
-        resizer.id = 'panel-resizer';
-        discussionPanel.appendChild(resizer);
+    const resizer = document.createElement('div');
+    resizer.id = 'panel-resizer';
+    discussionPanel.appendChild(resizer);
 
-        // Add event listeners for resizing
-        resizer.addEventListener('mousedown', initResize, false);
+    // Add event listeners for resizing
+    resizer.addEventListener('mousedown', initResize, false);
 
-        document.body.appendChild(discussionPanel); // Add to the DOM *once*
-
-    }
-
-      // Clear existing discussion container before re-fetching
-    const discussionContainer = document.getElementById('discussion-container');
-    if (discussionContainer) {
-        discussionContainer.innerHTML = ''; // Clear current content
-    }
-
-    // Now fetch and display the actual discussion threads
-    await fetchAndDisplayDiscussion(text, discussionContainer);
-
-    discussionPanel.style.display = 'block'; // Show the panel
+    document.body.appendChild(discussionPanel); // Add to the DOM *once*
+    fetchAndDisplayDiscussion(text, discussionContainer);
+    discussionPanel.style.display = 'block';
 
 };
 
