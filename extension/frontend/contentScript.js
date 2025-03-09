@@ -275,7 +275,7 @@ const handleImageFlag = async (imageElement) => {
 
         // Step 2: Store image and AI analysis in the database
         console.log("Storing AI analysis in the database...");
-        console.log("input:", imageElement.src, window.location.href, aiData.prediction, aiData.heatmap_image, chrome.runtime.id);
+        // console.log("input:", imageElement.src, window.location.href, aiData.prediction, aiData.heatmap_image, chrome.runtime.id);
         const storeResponse = await fetch(BACKEND_API_URL2, {
             method: "POST",
             headers: {
@@ -300,7 +300,7 @@ const handleImageFlag = async (imageElement) => {
         }
 
         // Step 3: Highlight image based on AI prediction
-        console.log("handle image flag: ", aiData.heatmap_image)
+        // console.log("handle image flag: ", aiData.heatmap_image)
         applyImageHighlight(aiData.prediction, imageElement, imageElement.src, aiData.heatmap_image);
 
     } catch (error) {
@@ -436,7 +436,7 @@ function hideImageContextMenu() {
 // Apply highlight for images
 // Apply highlight for images
 const applyImageHighlight = (prediction, imageElement, imageUrl, heatmap_image) => {
-    console.log("Heatmap image apply image highlight BEFOREEEE", heatmap_image);
+    // console.log("Heatmap image apply image highlight BEFOREEEE", heatmap_image);
     console.log("Apply Image highlight with: ", imageUrl);
     if (!imageElement) return;
 
@@ -495,7 +495,7 @@ const applyImageHighlight = (prediction, imageElement, imageUrl, heatmap_image) 
     wrapper.appendChild(label);
 
     // Make sure to attach context menu
-    console.log("Heatmap image apply image highlight AFTERRRR", heatmap_image);
+    // console.log("Heatmap image apply image highlight AFTERRRR", heatmap_image);
     addImageContextMenu(wrapper, prediction, imageUrl, heatmap_image);
     // Replace the original image with the wrapped version
 
@@ -587,7 +587,8 @@ const addImageContextMenu = (span, prediction, imageUrl, heatmap_image) => {
         // contextMenu.appendChild(image)
 
         // Credibility Score
-        if (prediction == "1") {
+        console.log("Prediction: ", prediction);
+        if (prediction === "1" || prediction === 1 || prediction === "Real") {
             prediction = "Real";
         }
         else {
