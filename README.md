@@ -55,6 +55,12 @@ Follow these steps to launch the application:
 
 Now both servers are up and running!
 
+4. **Create a .env file with the following content**
+```bash
+OPENAI_KEY = "ACTUAL OPENAI API KEY"
+BRAVE_API_KEY = "ACTUAL BRAVE API KEY"
+``` 
+
 ---
 
 ## 🧩 Using the Extension
