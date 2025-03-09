@@ -7,7 +7,7 @@ Truth Fairy empowers you to spot misinformation as you browse. Whether it’s a 
 
 ## ✨ Key Features
 - **Instant Verification ✅/❌:** Simply highlight content. If it’s false, it turns red; if true, it briefly glows green with extra info.
-- **Image Analysis 👁️:** Our enhanced XceptionNet-based deep learning model, powered by explainable AI (using Grad-CAM), detects deepfakes and highlights manipulated regions.
+- **Image Analysis 👁️:** Our enhanced deep learning model, powered by explainable AI (using Grad-CAM), detects deepfakes and highlights manipulated regions.
 - **Community Engagement 💬:** Join real-time discussions and view fact-checked comments via our built-in panel.
 - **Misinformation Scoring 📊:** Each statement is scored to indicate its reliability.
 
