@@ -164,6 +164,54 @@ app.post('/addDiscussionMessage', async (req, res) => {
     res.json({ message: "Message added to discussion", flaggedTextId });
 });
 
+app.post('/addDiscussionMessageToImage', async (req, res) => {
+    const { text_or_image, userId, message, url } = req.body;
+    console.log(text_or_image, userId, message, url)
+
+    // First, check if the flagged text document exists based on the text or url fields
+    const flaggedRef = db.collection('flaggedImages');
+
+    // Test querying by only the 'text' field first to debug
+    const existingQuery = await flaggedRef.where('imageUrl', '==', text_or_image).get();
+    console.log("Query by text result:", existingQuery);
+
+    // Test querying by only the 'url' field
+    // const existingQueryByUrl = await flaggedRef.where('url', '==', url).get();
+    // console.log("Query by url result:", existingQueryByUrl);
+
+    // // Check if both fields are provided and then run the query with both
+    // const existingQuery = await flaggedRef
+    //     .where('text', '==', text)
+    //     .where('url', '==', url) // Search by both text and URL
+    //     .get();
+    // console.log("Existing query:", existingQuery);
+
+    if (existingQuery.empty) {
+        return res.status(404).json({ message: "Flagged text not found for this URL" });
+    }
+
+    // Get the flaggedImageId (document ID)
+    const flaggedImageId = existingQuery.docs[0].id;
+    console.log("Flagged text ID:", flaggedImageId);
+
+    // Now, add the message to the discussion thread for the matched flaggedTextId
+    const newMessage = {
+        userId,
+        message,
+        timestamp: admin.firestore.Timestamp.now(),
+    };
+    console.log("New message:", newMessage);
+
+    // Update the flagged text with the new message in the discussion thread
+    await flaggedRef.doc(flaggedImageId).update({
+        discussionThread: admin.firestore.FieldValue.arrayUnion(newMessage),
+        lastUpdated: admin.firestore.Timestamp.now(),
+    });
+    console.log("Discussion thread updated");
+
+    res.json({ message: "Message added to discussion", flaggedImageId });
+});
+
 app.get('/getDiscussionThreads', async (req, res) => {
     const { text } = req.query; // Get the text parameter from the request
     console.log("Querying discussion threads for:", text);
@@ -190,6 +238,39 @@ app.get('/getDiscussionThreads', async (req, res) => {
         category: doc.data().AI_verification.category || "Uncategorized", // Assuming category is stored in the database
         justification: doc.data().AI_verification.justification || "No justification provided", // Assuming justification is stored in the database
         sources: doc.data().AI_verification.sources || [] // Assuming sources is an array in the database
+    }));
+
+    console.log("Discussion threads:", discussionThreads.map(thread => thread.discussionThread));
+
+    // Return the list of discussion threads with additional information
+    res.json(discussionThreads);
+});
+
+app.get('/getDiscussionThreadsImage', async (req, res) => {
+    const { text } = req.query; // Get the text parameter from the request
+    console.log("Querying discussion threads for:", text);
+
+    if (!text) {
+        return res.status(400).json({ message: "Text parameter is required" });
+    }
+
+    const flaggedRef = db.collection('flaggedImages');
+
+    // Query the database to find documents where the imageUrl matches the provided Url
+    const querySnapshot = await flaggedRef.where('imageUrl', '==', text).get();
+
+    // Check if any document matches the text
+    if (querySnapshot.empty) {
+        return res.status(404).json({ message: "No flagged texts found for the given image" });
+    }
+    console.log("Query snapshot:", querySnapshot);
+
+    // Extract the discussion threads and additional fields from the matched documents
+    const discussionThreads = querySnapshot.docs.map(doc => ({
+        id: doc.id, // Include the document ID for reference
+        discussionThread: doc.data().discussionThread || [], // Get the discussion thread or an empty array if none exists
+        prediction: doc.data().prediction || 0, // Assuming prediction is there
+        lastUpdated: doc.data().lastUpdated || ""
     }));
 
     console.log("Discussion threads:", discussionThreads.map(thread => thread.discussionThread));
