@@ -736,117 +736,156 @@ const newVideoLoaded = async () => {
 // Run newVideoLoaded when the page loads
 newVideoLoaded();
 const showDiscussionPanel = async (text, justification, sources) => {
-    // Check if a discussion panel exists and delete it
-    discussionPanel = document.getElementById('discussion-panel');
-    if (discussionPanel) {
-        discussionPanel.remove();
-    }
-    discussionPanel = document.createElement('div');
-    discussionPanel.id = 'discussion-panel';
-    discussionPanel.classList.add('discussion-panel');
+    if (!discussionPanel) {
+        // Create the panel if it doesn't exist
+        discussionPanel = document.createElement('div');
+        discussionPanel.id = 'discussion-panel';
+        discussionPanel.classList.add('discussion-panel');
 
-    // Container for header (close button and refresh button)
-    const header = document.createElement('div');
-    header.classList.add('discussion-header');
-    discussionPanel.appendChild(header);
+        // Container for header (close button and refresh button)
+        const header = document.createElement('div');
+        header.id = 'discussion-header';
+        header.classList.add('discussion-header');
+        discussionPanel.appendChild(header);
 
-    // Close button
-    const closeButton = document.createElement('button');
-    closeButton.textContent = 'Close';
-    closeButton.addEventListener('click', () => {
-        discussionPanel.style.display = 'none'; // Hide the panel
-    });
-    header.appendChild(closeButton);
-
-    // Refresh button
-    const refreshButton = document.createElement('button');
-    refreshButton.textContent = 'Refresh';
-    refreshButton.addEventListener('click', async () => {
-        // Clear existing discussion container before re-fetching
-        const discussionContainer = document.getElementById('discussion-container');
-        if (discussionContainer) {
-            discussionContainer.innerHTML = ''; // Clear current content
-        }
-        // Re-fetch and display the discussion
-        await fetchAndDisplayDiscussion(text, discussionContainer);
-    });
-    header.appendChild(refreshButton);
-
-    // Title (Flagged Text)
-    const title = document.createElement('h3');
-    title.textContent = `Discussion: ${text}`;
-    discussionPanel.appendChild(title);
-
-    // Create a container for justification and sources
-    const infoContainer = document.createElement('div');
-    infoContainer.classList.add('discussion-info-container');
-    discussionPanel.appendChild(infoContainer);
-
-    // Justification
-    const justificationContainer = document.createElement('div');
-    justificationContainer.classList.add('info-item', 'justification');
-    const justificationTitle = document.createElement('strong');
-    justificationTitle.textContent = 'Justification: ';
-    justificationContainer.appendChild(justificationTitle);
-    const justificationText = document.createElement('span');
-    justificationText.textContent = justification || 'No justification provided.';
-    justificationContainer.appendChild(justificationText);
-    infoContainer.appendChild(justificationContainer);
-
-    // Sources (Numbered List)
-    const sourcesContainer = document.createElement('div');
-    sourcesContainer.classList.add('info-item', 'sources');
-    const sourcesTitle = document.createElement('strong');
-    sourcesTitle.textContent = 'Sources: ';
-    sourcesContainer.appendChild(sourcesTitle);
-
-    // Create an ordered list for sources (numbered)
-    const sourcesList = document.createElement('ol');
-    if (sources && Array.isArray(sources)) {
-        sources.forEach(source => {
-            const listItem = document.createElement('li');
-            listItem.textContent = source;
-            sourcesList.appendChild(listItem);
+        // Close button
+        const closeButton = document.createElement('button');
+        closeButton.id = 'close-button';
+        closeButton.textContent = 'Close';
+        closeButton.addEventListener('click', () => {
+            discussionPanel.style.display = 'none'; // Hide the panel
         });
-    } else {
-        const noSources = document.createElement('div');
-        noSources.textContent = 'No sources provided.';
-        sourcesList.appendChild(noSources);
+        header.appendChild(closeButton);
+
+        const discussion_title = document.createElement('h1');
+        discussion_title.id = 'discussion-title'
+        discussion_title.textContent = `Summary`;
+        discussionPanel.appendChild(discussion_title);
+
+        // Title (Flagged Text)
+        const title = document.createElement('h3');
+        title.id = 'discussion-description'
+        title.textContent = `${text}`;
+        discussionPanel.appendChild(title);
+
+        // Create a container for justification and sources
+        const infoContainer = document.createElement('div');
+        infoContainer.classList.add('discussion-info-container');
+        discussionPanel.appendChild(infoContainer);
+
+        // Justification
+        const justificationContainer = document.createElement('div');
+        justificationContainer.classList.add('info-item', 'justification');
+        const justificationTitle = document.createElement('strong');
+        justificationTitle.textContent = 'Justification: ';
+        justificationContainer.appendChild(justificationTitle);
+        const justificationText = document.createElement('span');
+        justificationText.textContent = justification || 'No justification provided.';
+        justificationContainer.appendChild(justificationText);
+        infoContainer.appendChild(justificationContainer);
+
+        // Sources (Numbered List)
+        const sourcesContainer = document.createElement('div');
+        sourcesContainer.classList.add('info-item', 'sources');
+        const sourcesTitle = document.createElement('strong');
+        sourcesTitle.textContent = 'Sources: ';
+        sourcesContainer.appendChild(sourcesTitle);
+
+        // Create an ordered list for sources (numbered)
+        const sourcesList = document.createElement('ol');
+        sourcesContainer.style.overflow = "hidden";
+        sourcesContainer.style.wordWrap = "break-word";
+        sourcesContainer.style.whiteSpace = "normal"; 
+        sourcesContainer.style.maxWidth = "100%";
+
+        if (sources && Array.isArray(sources)) {
+            sources.forEach(source => {
+                const listItem = document.createElement('li');
+                const link = document.createElement('a');
+                link.href = source;
+                link.textContent = source;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.style.textDecoration = "none";
+                link.style.color = "#007bff";
+                listItem.appendChild(link);
+                sourcesList.appendChild(listItem);
+            });
+        } else {
+            const noSources = document.createElement('div');
+            noSources.textContent = 'No sources provided.';
+            sourcesList.appendChild(noSources);
+        }
+        sourcesContainer.appendChild(sourcesList);
+        infoContainer.appendChild(sourcesContainer);
+
+        const chat_title = document.createElement('h2');
+        chat_title.id = 'chat-title'
+        chat_title.textContent = `Discussion`;
+        discussionPanel.appendChild(chat_title);
+
+        const discussionContainer = document.createElement('div');
+        discussionContainer.id = 'discussion-container';
+        discussionPanel.appendChild(discussionContainer);
+
+        // Input for new messages
+        const inputMessage = document.createElement('textarea');
+        inputMessage.id = 'discussion-input';
+        inputMessage.placeholder = 'Add your message...';
+        discussionPanel.appendChild(inputMessage);
+
+        const bottom_header = document.createElement('div');
+        bottom_header.id = 'bottom-header';
+        bottom_header.classList.add('bottom-header');
+        discussionPanel.appendChild(bottom_header);
+
+        // Send button
+        const sendButton = document.createElement('button');
+        sendButton.id = 'send-button'; // Add an ID
+        sendButton.textContent = 'Send Message';
+        sendButton.addEventListener('click', async () => {
+            const url = window.location.href;
+            await sendMessage(text, inputMessage.value, discussionContainer, url);
+        });
+        bottom_header.appendChild(sendButton);
+
+        const refreshButton = document.createElement('button');
+        refreshButton.id = 'refresh-button';
+        refreshButton.textContent = 'Refresh';
+        refreshButton.addEventListener('click', async () => {
+            // Clear existing discussion container before re-fetching
+            const discussionContainer = document.getElementById('discussion-container');
+            if (discussionContainer) {
+                discussionContainer.innerHTML = ''; // Clear current content
+            }
+            // Re-fetch and display the discussion
+            await fetchAndDisplayDiscussion(text, discussionContainer);
+        });
+        bottom_header.appendChild(refreshButton);
+
+        // Resizable handle (div)
+        const resizer = document.createElement('div');
+        resizer.id = 'panel-resizer';
+        discussionPanel.appendChild(resizer);
+
+        // Add event listeners for resizing
+        resizer.addEventListener('mousedown', initResize, false);
+
+        document.body.appendChild(discussionPanel); // Add to the DOM *once*
+
     }
-    sourcesContainer.appendChild(sourcesList);
-    infoContainer.appendChild(sourcesContainer);
 
-    const discussionContainer = document.createElement('div');
-    discussionContainer.id = 'discussion-container';
-    discussionPanel.appendChild(discussionContainer);
+      // Clear existing discussion container before re-fetching
+    const discussionContainer = document.getElementById('discussion-container');
+    if (discussionContainer) {
+        discussionContainer.innerHTML = ''; // Clear current content
+    }
 
-    // Input for new messages
-    const inputMessage = document.createElement('textarea');
-    inputMessage.id = 'discussion-input';
-    inputMessage.placeholder = 'Add your message...';
-    discussionPanel.appendChild(inputMessage);
+    // Now fetch and display the actual discussion threads
+    await fetchAndDisplayDiscussion(text, discussionContainer);
 
-    // Send button
-    const sendButton = document.createElement('button');
-    sendButton.id = 'send-button'; // Add an ID
-    sendButton.textContent = 'Send Message';
-    sendButton.addEventListener('click', async () => {
-        const url = window.location.href;
-        await sendMessage(text, inputMessage.value, discussionContainer, url);
-    });
-    discussionPanel.appendChild(sendButton);
+    discussionPanel.style.display = 'block'; // Show the panel
 
-    // Resizable handle (div)
-    const resizer = document.createElement('div');
-    resizer.id = 'panel-resizer';
-    discussionPanel.appendChild(resizer);
-
-    // Add event listeners for resizing
-    resizer.addEventListener('mousedown', initResize, false);
-
-    document.body.appendChild(discussionPanel); // Add to the DOM *once*
-    fetchAndDisplayDiscussion(text, discussionContainer);
-    discussionPanel.style.display = 'block';
 };
 
 // Function to fetch and display discussion threads
