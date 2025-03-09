@@ -96,7 +96,7 @@ const hideContextMenu = () => {
     }
 }
 
-const applyHighlight = (credibilityScore, justification, text) => {
+const applyHighlight = (credibilityScore, justification, sources, text) => {
     const selection = window.getSelection();
     if (selection.rangeCount === 0) return;
     const range = selection.getRangeAt(0);
@@ -111,7 +111,7 @@ const applyHighlight = (credibilityScore, justification, text) => {
     span.classList.add('credibility-highlight');
     span.dataset.originalText = text; // Store the original text
     console.log("applyHighlight justify: ", justification);
-    addContextMenu(span, justification);
+    addContextMenu(span, justification, sources);
 
     try {
         range.surroundContents(span);
@@ -168,7 +168,7 @@ const handleFlagClick = async (event) => {
                         } else {
                             if (response?.credibilityScore !== undefined && aiData.justification && aiData.sources) {
                                 console.log("Flagged text successfully:", response);
-                                applyHighlight(response.credibilityScore, aiData.justification, selectedText);
+                                applyHighlight(response.credibilityScore, aiData.justification, aiData.sources, selectedText);
                                 resolve(response);
                             } else {
                                 console.error("Unexpected response:", response);
@@ -224,7 +224,7 @@ const handleFlagClick = async (event) => {
                             reject("Runtime error: " + chrome.runtime.lastError.message);
                         } else if (response?.credibilityScore !== undefined) {
                             console.log("Highlighted text successfully:", response);
-                            applyHighlight(response.credibilityScore, aiData.justification, selectedText);
+                            applyHighlight(response.credibilityScore, aiData.justification, aiData.sources, selectedText);
                             resolve(response);
                         } else {
                             console.error("Unexpected response:", response);
@@ -537,7 +537,7 @@ const addContextMenu = (span, justification, sources) => {
         discussOption.textContent = 'Discuss';
         discussOption.classList.add('context-menu-button'); // Different class for button
         discussOption.addEventListener('click', () => {
-            showDiscussionPanel(span.dataset.originalText); // Show discussion panel
+            showDiscussionPanel(span.dataset.originalText, justification, sources); // Show discussion panel
             hideContextMenu(); // hide not needed
         });
         contextMenu.appendChild(discussOption);
@@ -651,7 +651,7 @@ const applyExistingHighlights = (annotations) => {
         textNodes.forEach(node => {
             // 2. Split the text node and apply the highlight
             console.log("Before Highlight:", node.textContent);
-            highlightTextNode(node, annotation.text, annotation.AI_verification.score, annotation.justification);
+            highlightTextNode(node, annotation.text, annotation.AI_verification.score, annotation.justification, annotation.sources);
             console.log("After Highlight:", parent.innerHTML);
         });
     });
@@ -692,11 +692,9 @@ function findTextNodes(root, searchText) {
 
 
 // Helper function: Split text node and apply highlight
-function highlightTextNode(textNode, searchText, credibilityScore, justification) {
-    console.log("highlight text node justify: ", justification);
+function highlightTextNode(textNode, searchText, credibilityScore, justification, sources) {
     const parent = textNode.parentNode;
     let nodeText = textNode.nodeValue;
-
 
     console.log("TextNode Content (Original):", nodeText);
     console.log("Search Text (Original):", searchText);
@@ -734,18 +732,18 @@ function highlightTextNode(textNode, searchText, credibilityScore, justification
     span.title = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
     span.classList.add('credibility-highlight');
     span.dataset.originalText = matchText; // Store original text
-    span.textContent = matchText;
 
-    addContextMenu(span, justification); // Keep the context menu functionality
+     // Now add context Menu.
+    addContextMenu(span, justification, sources);
 
     // Replace the text node with the split parts
-    const fragment = document.createDocumentFragment();
-    if (beforeText) fragment.appendChild(document.createTextNode(beforeText));
-    fragment.appendChild(span);
-    if (afterText) fragment.appendChild(document.createTextNode(afterText));
+     span.textContent = matchText;
+     const fragment = document.createDocumentFragment();
+     if (beforeText) fragment.appendChild(document.createTextNode(beforeText));
+     fragment.appendChild(span);
+     if (afterText) fragment.appendChild(document.createTextNode(afterText));
 
-    parent.replaceChild(fragment, textNode);
-    console.log("Node was replaced", parent.innerHTML); //See node text after replacement.
+     parent.replaceChild(fragment, textNode);
 }
 
 const newVideoLoaded = async () => {
@@ -762,7 +760,7 @@ const newVideoLoaded = async () => {
 
 // Run newVideoLoaded when the page loads
 newVideoLoaded();
-const showDiscussionPanel = async (text) => {
+const showDiscussionPanel = async (text, justification, sources) => {
     if (!discussionPanel) {
         // Create the panel if it doesn't exist
         discussionPanel = document.createElement('div');
@@ -801,90 +799,48 @@ const showDiscussionPanel = async (text) => {
         title.textContent = `Discussion: ${text}`;
         discussionPanel.appendChild(title);
 
-        // Create a container for category, justification, and sources
+        // Create a container for justification and sources
         const infoContainer = document.createElement('div');
         infoContainer.classList.add('discussion-info-container');
         discussionPanel.appendChild(infoContainer);
 
+        // Justification
+        const justificationContainer = document.createElement('div');
+        justificationContainer.classList.add('info-item', 'justification');
+        const justificationTitle = document.createElement('strong');
+        justificationTitle.textContent = 'Justification: ';
+        justificationContainer.appendChild(justificationTitle);
+        const justificationText = document.createElement('span');
+        justificationText.textContent = justification || 'No justification provided.';
+        justificationContainer.appendChild(justificationText);
+        infoContainer.appendChild(justificationContainer);
+
+        // Sources (Numbered List)
+        const sourcesContainer = document.createElement('div');
+        sourcesContainer.classList.add('info-item', 'sources');
+        const sourcesTitle = document.createElement('strong');
+        sourcesTitle.textContent = 'Sources: ';
+        sourcesContainer.appendChild(sourcesTitle);
+
+        // Create an ordered list for sources (numbered)
+        const sourcesList = document.createElement('ol');
+        if (sources && Array.isArray(sources)) {
+            sources.forEach(source => {
+                const listItem = document.createElement('li');
+                listItem.textContent = source;
+                sourcesList.appendChild(listItem);
+            });
+        } else {
+            const noSources = document.createElement('div');
+            noSources.textContent = 'No sources provided.';
+            sourcesList.appendChild(noSources);
+        }
+        sourcesContainer.appendChild(sourcesList);
+        infoContainer.appendChild(sourcesContainer);
+
         const discussionContainer = document.createElement('div');
         discussionContainer.id = 'discussion-container';
-        discussionPanel.appendChild(discussionContainer);  // Append discussion container to panel
-
-        // Fetch and display the discussion information (category, justification, sources)
-        try {
-            const response = await fetch(`${API_BASE_URL}/getDiscussionThreads?text=${encodeURIComponent(text)}`);
-            if (!response.ok) {
-                if (response.status === 400) {
-                    const noMessages = document.createElement('div');
-                    noMessages.textContent = 'No messages yet.';
-                    discussionPanel.appendChild(noMessages);
-                    discussionPanel.style.display = 'block';
-                    return;
-                }
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const discussionThreads = await response.json();
-            console.log("discussionThreads from fetch:", discussionThreads);
-
-            // Check if discussionThreads is an array and has at least one element
-            if (Array.isArray(discussionThreads) && discussionThreads.length > 0) {
-                const thread = discussionThreads[0];
-
-                // Category
-                const categoryContainer = document.createElement('div');
-                categoryContainer.classList.add('info-item', 'category');
-                const categoryTitle = document.createElement('strong');
-                categoryTitle.textContent = 'Category: ';
-                categoryContainer.appendChild(categoryTitle);
-                const categoryText = document.createElement('span');
-                categoryText.textContent = thread.category;
-                categoryContainer.appendChild(categoryText);
-                infoContainer.appendChild(categoryContainer);
-
-                // Justification
-                const justificationContainer = document.createElement('div');
-                justificationContainer.classList.add('info-item', 'justification');
-                const justificationTitle = document.createElement('strong');
-                justificationTitle.textContent = 'Justification: ';
-                justificationContainer.appendChild(justificationTitle);
-                const justificationText = document.createElement('span');
-                justificationText.textContent = thread.justification;
-                justificationContainer.appendChild(justificationText);
-                infoContainer.appendChild(justificationContainer);
-
-                // Sources (Numbered List)
-                const sourcesContainer = document.createElement('div');
-                sourcesContainer.classList.add('info-item', 'sources');
-                const sourcesTitle = document.createElement('strong');
-                sourcesTitle.textContent = 'Sources: ';
-                sourcesContainer.appendChild(sourcesTitle);
-
-                // Create an ordered list for sources (numbered)
-                const sourcesList = document.createElement('ol');
-                thread.sources.forEach(source => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = source;
-                    sourcesList.appendChild(listItem);
-                });
-                sourcesContainer.appendChild(sourcesList);
-                infoContainer.appendChild(sourcesContainer);
-
-                // Now display the discussion thread below the info section
-                displayDiscussionThread(thread.discussionThread, discussionContainer);
-
-                // Pass the discussionContainer to fetchAndDisplayDiscussion
-                fetchAndDisplayDiscussion(text, discussionContainer);
-            } else {
-                const noDiscussions = document.createElement('div');
-                noDiscussions.textContent = 'No discussions yet.';
-                discussionPanel.appendChild(noDiscussions);
-            }
-        } catch (error) {
-            console.error("Error fetching discussion threads:", error);
-            const errorMessage = document.createElement('div');
-            errorMessage.textContent = 'Error loading discussions.';
-            discussionPanel.appendChild(errorMessage);
-        }
+        discussionPanel.appendChild(discussionContainer);
 
         // Input for new messages
         const inputMessage = document.createElement('textarea');
@@ -912,10 +868,20 @@ const showDiscussionPanel = async (text) => {
 
         document.body.appendChild(discussionPanel); // Add to the DOM *once*
 
-        discussionPanel.style.display = 'block'; // Show the panel
     }
-};
 
+      // Clear existing discussion container before re-fetching
+    const discussionContainer = document.getElementById('discussion-container');
+    if (discussionContainer) {
+        discussionContainer.innerHTML = ''; // Clear current content
+    }
+
+    // Now fetch and display the actual discussion threads
+    await fetchAndDisplayDiscussion(text, discussionContainer);
+
+    discussionPanel.style.display = 'block'; // Show the panel
+
+};
 
 // Function to fetch and display discussion threads
 const fetchAndDisplayDiscussion = async (text, discussionContainer) => {
@@ -946,7 +912,6 @@ const fetchAndDisplayDiscussion = async (text, discussionContainer) => {
         discussionContainer.innerHTML = '<div>Error loading discussions.</div>';
     }
 };
-
 
 // --- Resizing Logic ---
 
