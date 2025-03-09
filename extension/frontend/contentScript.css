@@ -451,4 +451,8 @@
     border-radius: 3px;
   }
 
-  
+  .credibility-category {
+    font-size: 18px;
+    font-weight: bold;
+    align-items: center;
+  }

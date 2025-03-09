@@ -97,7 +97,7 @@ const hideContextMenu = () => {
 }
 
 //Modify applyHighlight so it takes 3 arguments
-const applyHighlight = (credibilityScore, justification, sources, text) => {
+const applyHighlight = (credibilityScore, justification, sources, text, category) => {
     const selection = window.getSelection();
     if (selection.rangeCount === 0) return;
     const range = selection.getRangeAt(0);
@@ -112,7 +112,7 @@ const applyHighlight = (credibilityScore, justification, sources, text) => {
     span.classList.add('credibility-highlight');
     span.dataset.originalText = text; // Store the original text
     console.log("applyHighlight text: ", text);
-    addContextMenu(span, justification, sources, text);
+    addContextMenu(span, justification, sources, text, category);
 
     try {
         range.surroundContents(span);
@@ -169,7 +169,7 @@ const handleFlagClick = async (event) => {
                         } else {
                             if (response?.credibilityScore !== undefined && aiData.justification && aiData.sources) {
                                 console.log("Flagged text successfully:", response);
-                                applyHighlight(response.credibilityScore, aiData.justification, aiData.sources, selectedText);
+                                applyHighlight(response.credibilityScore, aiData.justification, aiData.sources, selectedText, aiData.category);
                                 resolve(response);
                             } else {
                                 console.error("Unexpected response:", response);
@@ -225,7 +225,7 @@ const handleFlagClick = async (event) => {
                             reject("Runtime error: " + chrome.runtime.lastError.message);
                         } else if (response?.credibilityScore !== undefined) {
                             console.log("Highlighted text successfully:", response);
-                            applyHighlight(response.credibilityScore, aiData.justification, aiData.sources, selectedText);
+                            applyHighlight(response.credibilityScore, aiData.justification, aiData.sources, selectedText, aiData.category);
                             resolve(response);
                         } else {
                             console.error("Unexpected response:", response);
@@ -503,7 +503,7 @@ const applyImageHighlight = (prediction, imageElement, imageUrl, heatmap_image) 
 };
 
 //helper function to add context menu
-const addContextMenu = (span, justification, sources, text) => {
+const addContextMenu = (span, justification, sources, text, category) => {
     span.addEventListener('contextmenu', (event) => {
         console.log("add context menu justification: ", justification);
         event.stopImmediatePropagation(); // This is important!
@@ -519,29 +519,32 @@ const addContextMenu = (span, justification, sources, text) => {
         let contextMenu = document.createElement('div');
         contextMenu.id = 'credibility-context-menu';
         contextMenu.classList.add('credibility-context-menu');
-
+        console.log("add context menu category: ", category);
         // Create credibility score display
-        const credibilityScore = Math.random(); // Random number between 0 and 1
-        const credibilityDisplay = document.createElement('div');
-        credibilityDisplay.textContent = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
-        credibilityDisplay.classList.add('context-menu-item');
-        contextMenu.appendChild(credibilityDisplay);
+        if (category === "Cannot Verify") 
+            category = "unverifiable";
+        const categoryValue = document.createElement('div');
+        categoryValue.classList.add('credibility-category');
+        categoryValue.textContent = `This text is ${category}`;
+        categoryValue.classList.add('context-menu-item');
+        contextMenu.appendChild(categoryValue);
 
         // Create reason display
         const reasonDisplay = document.createElement('div');
         reasonDisplay.textContent = justification || 'No justification provided';
         reasonDisplay.classList.add('context-menu-item');
         contextMenu.appendChild(reasonDisplay);
-
-        // Create discuss button
-        const discussOption = document.createElement('button'); // Use a button for better styling
-        discussOption.textContent = 'Discuss';
-        discussOption.classList.add('context-menu-button'); // Different class for button
-        discussOption.addEventListener('click', () => {
-            showDiscussionPanel(text, justification, sources); // Pass the selected text.
-            hideContextMenu(); // hide not needed
-        });
-        contextMenu.appendChild(discussOption);
+        if (category !== "unverifiable") {
+            // Create discuss button
+            const discussOption = document.createElement('button'); // Use a button for better styling
+            discussOption.textContent = 'Discuss';
+            discussOption.classList.add('context-menu-button'); // Different class for button
+            discussOption.addEventListener('click', () => {
+                showDiscussionPanel(text, justification, sources); // Pass the selected text.
+                hideContextMenu(); // hide not needed
+            });
+            contextMenu.appendChild(discussOption);
+        }
 
         document.body.appendChild(contextMenu);
 
@@ -640,40 +643,6 @@ const addComment = () => {
     }
 };
 
-const checkPageTitle = async () => {
-    const pageTitle = document.title;
-
-    chrome.runtime.sendMessage({
-        action: "flagText",
-        selectedText: pageTitle,
-        pageURL: window.location.href,
-        pageTitle: pageTitle
-    }, (response) => {
-
-        if (response && response.credibilityScore !== undefined) {
-            console.log("Title credibility score:", response.credibilityScore);
-            const titleElement = document.querySelector('title');
-            if (titleElement) {
-                const span = document.createElement('span');
-                const hue = (1 - response.credibilityScore) * 120;
-                const saturation = 100;
-                const lightness = 75;
-
-                span.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-                span.style.color = 'black'
-                span.title = `Credibility Score: ${Math.round((1 - response.credibilityScore) * 100)}%`;
-                span.appendChild(document.createTextNode(titleElement.textContent));
-                titleElement.textContent = '';
-                titleElement.appendChild(span);
-            }
-        } else {
-            console.error("Error checking title:", response);
-        }
-    });
-};
-
-//checkPageTitle();
-
 // --- FETCHING and APPLYING EXISTING HIGHLIGHTS ---
 
 // Function to fetch annotations from the backend
@@ -711,7 +680,8 @@ const applyExistingHighlights = (annotations) => {
         textNodes.forEach(node => {
             // 2. Split the text node and apply the highlight
             console.log("Before Highlight:", node.textContent);
-            highlightTextNode(node, annotation.text, annotation.AI_verification.score, annotation.justification, annotation.sources, annotation.text);
+            console.log("*******************************", annotation.AI_verification)
+            highlightTextNode(node, annotation.text, annotation.AI_verification.score, annotation.justification, annotation.sources, annotation.text, annotation.AI_verification.category);
             console.log("After Highlight:", parent.innerHTML);
         });
     });
@@ -752,7 +722,7 @@ function findTextNodes(root, searchText) {
 
 
 // **Make sure this function takes 5 arguments **
-function highlightTextNode(textNode, searchText, credibilityScore, justification, sources, text) {
+function highlightTextNode(textNode, searchText, credibilityScore, justification, sources, text, category) {
     const parent = textNode.parentNode;
     let nodeText = textNode.nodeValue;
 
@@ -784,6 +754,14 @@ function highlightTextNode(textNode, searchText, credibilityScore, justification
         credibilityScore = Math.random(); // Generate a random number between 0 and 1
         console.warn("Credibility score was NaN, setting it to a random value:", credibilityScore);
     }
+    console.log("Category: ", category)
+    if (category === "Fake") {
+        credibilityScore = 90;
+    }else if (category === "Real") {
+        credibilityScore = 10;
+    }else{
+        credibilityScore = 50;
+    }
 
     const hue = (1 - credibilityScore) * 120;
     const saturation = 100;
@@ -792,7 +770,7 @@ function highlightTextNode(textNode, searchText, credibilityScore, justification
     span.title = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
     span.classList.add('credibility-highlight');
     span.dataset.originalText = matchText; // Store original text
-    addContextMenu(span, justification, sources, searchText);
+    addContextMenu(span, justification, sources, searchText, category);
 
     // Replace the text node with the split parts
     span.textContent = matchText;
