@@ -1,77 +1,84 @@
-/* popup.css */
-
-/* 
-  1) Slightly narrower width (380px) to reduce empty space.
-  2) max-height 600px (Chrome limit), with scrolling.
-*/
+/* Make sure the popup is constrained properly */
 html, body {
   margin: 0;
   padding: 0;
-  width: 380px;
+  width: 400px; /* was 380px */
   max-height: 600px;
   overflow-y: auto;
-  font-family: 'Open Sans', Arial, sans-serif; 
-  background-color: #fafafa; /* Light background behind the container */
+  font-family: Arial, sans-serif;
+  background-color: #f2f2f2;
 }
 
-/* Main container: a subtle card with rounded corners */
+
+/* Main container */
 #main-container {
   margin: 10px;
   background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  overflow: hidden; /* Ensures header’s rounded corners stay neat */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  overflow: hidden;
 }
 
-/* Header with a gradient, minimal padding */
+/* Header with gradient */
 #header {
   background: linear-gradient(to right, #4e8ef7, #6a77d9);
-  padding: 15px;
+  color: #fff;
   text-align: center;
+  position: relative;
+}
+
+/* Header text */
+#header-content {
+  padding: 20px;
 }
 
 #header h1 {
   font-size: 18px;
   margin: 0;
-  color: #fff;
   font-weight: 600;
 }
 
 #header h2 {
-  font-size: 13px;
-  margin: 4px 0 0;
-  color: #f0f0f0;
+  font-size: 14px;
+  margin: 5px 0 0;
   font-weight: 400;
+  opacity: 0.9;
 }
 
-/* Content area below the header */
+/* Wave effect */
+#header svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: -1px; /* Prevents unwanted gap */
+}
+
+/* Content area */
 #content {
-  padding: 15px;
-  box-sizing: border-box;
+  padding: 20px;
 }
 
-/* Columns container */
+/* Two-column layout */
 #columns {
   display: flex;
   flex-direction: row;
   gap: 10px;
-  margin-top: 5px;
+  margin-top: 10px;
 }
 
-/* Each column: subtle border, slight rounding */
+/* Card-style columns */
 .column {
   flex: 1;
-  background-color: #fff;
+  background-color: #fafafa;
   border: 1px solid #eee;
   border-radius: 6px;
-  padding: 12px;
-  box-sizing: border-box;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Very subtle card-like feel */
+  padding: 15px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
 /* Headings in blue with icons */
 .column h3 {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-size: 14px;
   color: #007BFF;
   font-weight: 600;
