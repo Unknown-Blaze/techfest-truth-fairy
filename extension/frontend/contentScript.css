@@ -83,7 +83,8 @@
 }
 
 #discussion-title,
-#chat-title {
+#chat-title,
+#heatmap-title {
 	text-align: center;
 	width: 100%; /* Make the header span the full width */
     display: block; /* Ensures width is respected */
@@ -93,6 +94,15 @@
 #discussion-title,
 #chat-title {
 	text-decoration: underline;
+}
+
+#heatmap-explanation {
+	text-align: center;
+	width: 100%; /* Make the header span the full width */
+    display: block; /* Ensures width is respected */
+	font-family: 'Copperplate';
+    font-weight: lighter;
+    font-size: 12px;  
 }
 
 /* Style for discussion-descriptions */
@@ -143,6 +153,15 @@
 	display: none; /* Initially hidden */
 	padding: 10px;
 	box-sizing: border-box; /* Include padding in width/height */
+}
+
+#discussion-panel img {
+    width: 100%; /* Make images take up full width of the panel */
+    margin: 0 auto;
+    height: auto; /* Maintain aspect ratio */
+    max-height: 50%; /* Ensure images do not exceed half of the panel */
+    object-fit: contain; /* Prevent stretching */
+    align-items: center;
 }
 
 #discussion-header {
@@ -287,6 +306,7 @@
 	border-radius: 8px;
 	margin-bottom: 20px;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding-top: 2%;
 }
 
 .info-item {
