@@ -96,6 +96,7 @@ const hideContextMenu = () => {
     }
 }
 
+//Modify applyHighlight so it takes 3 arguments
 const applyHighlight = (credibilityScore, justification, sources, text) => {
     const selection = window.getSelection();
     if (selection.rangeCount === 0) return;
@@ -110,8 +111,8 @@ const applyHighlight = (credibilityScore, justification, sources, text) => {
     span.title = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
     span.classList.add('credibility-highlight');
     span.dataset.originalText = text; // Store the original text
-    console.log("applyHighlight justify: ", justification);
-    addContextMenu(span, justification, sources);
+    console.log("applyHighlight text: ", text);
+    addContextMenu(span, justification, sources, text);
 
     try {
         range.surroundContents(span);
@@ -478,9 +479,10 @@ const applyImageHighlight = (prediction, imageElement) => {
 };
 
 //helper function to add context menu
-const addContextMenu = (span, justification, sources) => {
+const addContextMenu = (span, justification, sources, text) => {
     span.addEventListener('contextmenu', (event) => {
         console.log("add context menu justification: ", justification);
+        event.stopImmediatePropagation(); // This is important!
         event.preventDefault();
 
         // First, remove any existing context menu
@@ -512,7 +514,7 @@ const addContextMenu = (span, justification, sources) => {
         discussOption.textContent = 'Discuss';
         discussOption.classList.add('context-menu-button'); // Different class for button
         discussOption.addEventListener('click', () => {
-            showDiscussionPanel(span.dataset.originalText, justification, sources); // Show discussion panel
+            showDiscussionPanel(text, justification, sources); // Pass the selected text.
             hideContextMenu(); // hide not needed
         });
         contextMenu.appendChild(discussOption);
@@ -626,7 +628,7 @@ const applyExistingHighlights = (annotations) => {
         textNodes.forEach(node => {
             // 2. Split the text node and apply the highlight
             console.log("Before Highlight:", node.textContent);
-            highlightTextNode(node, annotation.text, annotation.AI_verification.score, annotation.justification, annotation.sources);
+            highlightTextNode(node, annotation.text, annotation.AI_verification.score, annotation.justification, annotation.sources, annotation.text);
             console.log("After Highlight:", parent.innerHTML);
         });
     });
@@ -666,8 +668,8 @@ function findTextNodes(root, searchText) {
 }
 
 
-// Helper function: Split text node and apply highlight
-function highlightTextNode(textNode, searchText, credibilityScore, justification, sources) {
+// **Make sure this function takes 5 arguments **
+function highlightTextNode(textNode, searchText, credibilityScore, justification, sources, text) {
     const parent = textNode.parentNode;
     let nodeText = textNode.nodeValue;
 
@@ -707,18 +709,16 @@ function highlightTextNode(textNode, searchText, credibilityScore, justification
     span.title = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
     span.classList.add('credibility-highlight');
     span.dataset.originalText = matchText; // Store original text
-
-     // Now add context Menu.
-    addContextMenu(span, justification, sources);
+    addContextMenu(span, justification, sources, searchText);
 
     // Replace the text node with the split parts
-     span.textContent = matchText;
-     const fragment = document.createDocumentFragment();
-     if (beforeText) fragment.appendChild(document.createTextNode(beforeText));
-     fragment.appendChild(span);
-     if (afterText) fragment.appendChild(document.createTextNode(afterText));
+    span.textContent = matchText;
+    const fragment = document.createDocumentFragment();
+    if (beforeText) fragment.appendChild(document.createTextNode(beforeText));
+    fragment.appendChild(span);
+    if (afterText) fragment.appendChild(document.createTextNode(afterText));
 
-     parent.replaceChild(fragment, textNode);
+    parent.replaceChild(fragment, textNode);
 }
 
 const newVideoLoaded = async () => {
@@ -736,130 +736,128 @@ const newVideoLoaded = async () => {
 // Run newVideoLoaded when the page loads
 newVideoLoaded();
 const showDiscussionPanel = async (text, justification, sources) => {
-    if (!discussionPanel) {
-        // Create the panel if it doesn't exist
-        discussionPanel = document.createElement('div');
-        discussionPanel.id = 'discussion-panel';
-        discussionPanel.classList.add('discussion-panel');
+    // Check if a discussion panel exists and delete it
+    discussionPanel = document.getElementById('discussion-panel');
+    if (discussionPanel) {
+        discussionPanel.remove();
+    }
+    discussionPanel = document.createElement('div');
+    discussionPanel.id = 'discussion-panel';
+    discussionPanel.classList.add('discussion-panel');
 
-        // Container for header (close button and refresh button)
-        const header = document.createElement('div');
-        header.classList.add('discussion-header');
-        discussionPanel.appendChild(header);
+    // Container for header (close button and refresh button)
+    const header = document.createElement('div');
+    header.classList.add('discussion-header');
+    discussionPanel.appendChild(header);
 
-        // Close button
-        const closeButton = document.createElement('button');
-        closeButton.textContent = 'Close';
-        closeButton.addEventListener('click', () => {
-            discussionPanel.style.display = 'none'; // Hide the panel
-        });
-        header.appendChild(closeButton);
+    // Close button
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Close';
+    closeButton.addEventListener('click', () => {
+        discussionPanel.style.display = 'none'; // Hide the panel
+    });
+    header.appendChild(closeButton);
 
-        // Refresh button
-        const refreshButton = document.createElement('button');
-        refreshButton.textContent = 'Refresh';
-        refreshButton.addEventListener('click', async () => {
-            // Clear existing discussion container before re-fetching
-            const discussionContainer = document.getElementById('discussion-container');
-            if (discussionContainer) {
-                discussionContainer.innerHTML = ''; // Clear current content
-            }
-            // Re-fetch and display the discussion
-            await fetchAndDisplayDiscussion(text, discussionContainer);
-        });
-        header.appendChild(refreshButton);
-
-        // Title (Flagged Text)
-        const title = document.createElement('h3');
-        title.textContent = `Discussion: ${text}`;
-        discussionPanel.appendChild(title);
-
-        // Create a container for justification and sources
-        const infoContainer = document.createElement('div');
-        infoContainer.classList.add('discussion-info-container');
-        discussionPanel.appendChild(infoContainer);
-
-        // Justification
-        const justificationContainer = document.createElement('div');
-        justificationContainer.classList.add('info-item', 'justification');
-        const justificationTitle = document.createElement('strong');
-        justificationTitle.textContent = 'Justification: ';
-        justificationContainer.appendChild(justificationTitle);
-        const justificationText = document.createElement('span');
-        justificationText.textContent = justification || 'No justification provided.';
-        justificationContainer.appendChild(justificationText);
-        infoContainer.appendChild(justificationContainer);
-
-        // Sources (Numbered List)
-        const sourcesContainer = document.createElement('div');
-        sourcesContainer.classList.add('info-item', 'sources');
-        const sourcesTitle = document.createElement('strong');
-        sourcesTitle.textContent = 'Sources: ';
-        sourcesContainer.appendChild(sourcesTitle);
-
-        // Create an ordered list for sources (numbered)
-        const sourcesList = document.createElement('ol');
-        if (sources && Array.isArray(sources)) {
-            sources.forEach(source => {
-                const listItem = document.createElement('li');
-                listItem.textContent = source;
-                sourcesList.appendChild(listItem);
-            });
-        } else {
-            const noSources = document.createElement('div');
-            noSources.textContent = 'No sources provided.';
-            sourcesList.appendChild(noSources);
+    // Refresh button
+    const refreshButton = document.createElement('button');
+    refreshButton.textContent = 'Refresh';
+    refreshButton.addEventListener('click', async () => {
+        // Clear existing discussion container before re-fetching
+        const discussionContainer = document.getElementById('discussion-container');
+        if (discussionContainer) {
+            discussionContainer.innerHTML = ''; // Clear current content
         }
-        sourcesContainer.appendChild(sourcesList);
-        infoContainer.appendChild(sourcesContainer);
+        // Re-fetch and display the discussion
+        await fetchAndDisplayDiscussion(text, discussionContainer);
+    });
+    header.appendChild(refreshButton);
 
-        const discussionContainer = document.createElement('div');
-        discussionContainer.id = 'discussion-container';
-        discussionPanel.appendChild(discussionContainer);
+    // Title (Flagged Text)
+    const title = document.createElement('h3');
+    title.textContent = `Discussion: ${text}`;
+    discussionPanel.appendChild(title);
 
-        // Input for new messages
-        const inputMessage = document.createElement('textarea');
-        inputMessage.id = 'discussion-input';
-        inputMessage.placeholder = 'Add your message...';
-        discussionPanel.appendChild(inputMessage);
+    // Create a container for justification and sources
+    const infoContainer = document.createElement('div');
+    infoContainer.classList.add('discussion-info-container');
+    discussionPanel.appendChild(infoContainer);
 
-        // Send button
-        const sendButton = document.createElement('button');
-        sendButton.id = 'send-button'; // Add an ID
-        sendButton.textContent = 'Send Message';
-        sendButton.addEventListener('click', async () => {
-            const url = window.location.href;
-            await sendMessage(text, inputMessage.value, discussionContainer, url);
+    // Justification
+    const justificationContainer = document.createElement('div');
+    justificationContainer.classList.add('info-item', 'justification');
+    const justificationTitle = document.createElement('strong');
+    justificationTitle.textContent = 'Justification: ';
+    justificationContainer.appendChild(justificationTitle);
+    const justificationText = document.createElement('span');
+    justificationText.textContent = justification || 'No justification provided.';
+    justificationContainer.appendChild(justificationText);
+    infoContainer.appendChild(justificationContainer);
+
+    // Sources (Numbered List)
+    const sourcesContainer = document.createElement('div');
+    sourcesContainer.classList.add('info-item', 'sources');
+    const sourcesTitle = document.createElement('strong');
+    sourcesTitle.textContent = 'Sources: ';
+    sourcesContainer.appendChild(sourcesTitle);
+
+    // Create an ordered list for sources (numbered)
+    const sourcesList = document.createElement('ol');
+    if (sources && Array.isArray(sources)) {
+        sources.forEach(source => {
+            const listItem = document.createElement('li');
+            listItem.textContent = source;
+            sourcesList.appendChild(listItem);
         });
-        discussionPanel.appendChild(sendButton);
-
-        // Resizable handle (div)
-        const resizer = document.createElement('div');
-        resizer.id = 'panel-resizer';
-        discussionPanel.appendChild(resizer);
-
-        // Add event listeners for resizing
-        resizer.addEventListener('mousedown', initResize, false);
-
-        document.body.appendChild(discussionPanel); // Add to the DOM *once*
-
+    } else {
+        const noSources = document.createElement('div');
+        noSources.textContent = 'No sources provided.';
+        sourcesList.appendChild(noSources);
     }
+    sourcesContainer.appendChild(sourcesList);
+    infoContainer.appendChild(sourcesContainer);
 
-      // Clear existing discussion container before re-fetching
-    const discussionContainer = document.getElementById('discussion-container');
-    if (discussionContainer) {
-        discussionContainer.innerHTML = ''; // Clear current content
-    }
+    const discussionContainer = document.createElement('div');
+    discussionContainer.id = 'discussion-container';
+    discussionPanel.appendChild(discussionContainer);
 
-    // Now fetch and display the actual discussion threads
-    await fetchAndDisplayDiscussion(text, discussionContainer);
+    // Input for new messages
+    const inputMessage = document.createElement('textarea');
+    inputMessage.id = 'discussion-input';
+    inputMessage.placeholder = 'Add your message...';
+    discussionPanel.appendChild(inputMessage);
 
-    discussionPanel.style.display = 'block'; // Show the panel
+    // Send button
+    const sendButton = document.createElement('button');
+    sendButton.id = 'send-button'; // Add an ID
+    sendButton.textContent = 'Send Message';
+    sendButton.addEventListener('click', async () => {
+        const url = window.location.href;
+        await sendMessage(text, inputMessage.value, discussionContainer, url);
+    });
+    discussionPanel.appendChild(sendButton);
 
+    // Resizable handle (div)
+    const resizer = document.createElement('div');
+    resizer.id = 'panel-resizer';
+    discussionPanel.appendChild(resizer);
+
+    // Add event listeners for resizing
+    resizer.addEventListener('mousedown', initResize, false);
+
+    document.body.appendChild(discussionPanel); // Add to the DOM *once*
+    fetchAndDisplayDiscussion(text, discussionContainer);
+    discussionPanel.style.display = 'block';
 };
 
 // Function to fetch and display discussion threads
 const fetchAndDisplayDiscussion = async (text, discussionContainer) => {
+    let discussionPanel = document.getElementById('discussion-panel'); // get discussion panel to append it
+
+    if (!discussionPanel){
+        return; // don't do anything
+    }
+
+    discussionContainer = document.getElementById('discussion-container'); // need to always get element from id, otherwise it's always null
     discussionContainer.innerHTML = ''; // Clear previous content
 
     try {
