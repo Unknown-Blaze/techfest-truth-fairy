@@ -328,7 +328,7 @@ const fetchFlaggedImages = async () => {
 
         // Highlight the flagged images
         flaggedImages.forEach((imageData) => {
-            highlightFlaggedImage(imageData.imageUrl);
+            highlightFlaggedImage(imageData.prediction, imageData.imageUrl);
         });
     } catch (error) {
         console.error("Error fetching flagged images:", error);
@@ -336,7 +336,7 @@ const fetchFlaggedImages = async () => {
 };
 
 // Highlight flagged image based on URL
-const highlightFlaggedImage = (imageUrl) => {
+const highlightFlaggedImage = (imagePrediction, imageUrl) => {
     const images = document.querySelectorAll("img");
 
     images.forEach((image) => {
@@ -345,8 +345,7 @@ const highlightFlaggedImage = (imageUrl) => {
         const normalizedFlaggedUrl = new URL(imageUrl).href;
 
         if (normalizedImageSrc === normalizedFlaggedUrl) {
-            const prediction = 0; // Replace with actual prediction if you fetch it
-            applyImageHighlight(prediction, image);
+            applyImageHighlight(imagePrediction, image);
         }
     });
 };
@@ -424,7 +423,7 @@ const applyImageHighlight = (prediction, imageElement) => {
     if (!imageElement) return;
 
     // Calculate HSL color based on credibility score
-    const hue = 100;
+    const hue = (prediction == 1 ? 100 : 0);
     const saturation = 100;
     const lightness = 75;
     const highlightColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
@@ -448,59 +447,35 @@ const applyImageHighlight = (prediction, imageElement) => {
     overlay.style.opacity = "0.3"; // Adjust transparency
     overlay.style.pointerEvents = "none"; // Prevent interference with clicks
 
+    const label = document.createElement("div");
+    label.textContent = prediction == 1 ? "REAL" : "FAKE";
+    label.style.position = "absolute";
+    label.style.top = "4%"; // Slightly inside the top
+    label.style.right = "4%"; // Slightly inside the right
+    label.style.backgroundColor = prediction == 1 ? "rgba(34, 139, 34, 0.6)" : "rgba(220, 20, 60, 0.6)"; // Dark background for contrast
+    label.style.color = "white"; // White text for visibility
+    label.style.fontWeight = "bold";
+    label.style.padding = "2px 2px"; // Slightly more padding for balance
+    label.style.borderRadius = "8px"; // More rounded edges
+    label.style.zIndex = "10";
+    label.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)"; // Soft shadow for depth
+    label.style.fontFamily = "Poppins";
+
+    // Adjust text size based on image size
+    const imageWidth = imageElement.width;
+    label.style.fontSize = `${Math.max(imageWidth * 0.04, 6)}px`; // Scale text size
+
     // Wrap image in a container to properly position overlay
     const wrapper = document.createElement("div");
     wrapper.style.position = "relative";
     wrapper.style.display = "inline-block";
     wrapper.appendChild(imageElement.cloneNode(true)); // Clone the image
     wrapper.appendChild(overlay);
+    wrapper.appendChild(label)
 
     // Replace the original image with the wrapped version
     imageElement.replaceWith(wrapper);
 };
-// const applyImageHighlight = (prediction, imageElement) => {
-//     if (!imageElement) return;
-
-//     // Calculate HSL color based on credibility score
-//     const hue = 100;
-//     const saturation = 100;
-//     const lightness = 75;
-//     const highlightColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-
-//     // Apply a colored border to the image
-//     imageElement.style.border = `4px solid ${highlightColor}`;
-//     imageElement.style.borderRadius = "5px";
-
-//     // Set tooltip for credibility score
-//     imageElement.title = prediction;
-
-//     // Add a semi-transparent overlay (optional)
-//     const overlay = document.createElement("div");
-//     overlay.classList.add("image-overlay");
-//     overlay.style.position = "absolute";
-//     overlay.style.top = "0";
-//     overlay.style.left = "0";
-//     overlay.style.width = "100%";
-//     overlay.style.height = "100%";
-//     overlay.style.backgroundColor = highlightColor;
-//     overlay.style.opacity = "0.3"; // Adjust transparency
-//     overlay.style.pointerEvents = "none"; // Prevent interference with clicks
-
-//     // Add overlay directly to the image wrapper, not the entire page
-//     const imageWrapper = imageElement.parentElement;
-//     if (!imageWrapper) {
-//         // If there's no wrapper, create one
-//         const wrapper = document.createElement("div");
-//         wrapper.style.position = "relative";
-//         wrapper.style.display = "inline-block";
-//         wrapper.appendChild(imageElement);
-//         imageElement.parentNode.replaceChild(wrapper, imageElement);
-//     }
-
-//     // Append overlay to the image wrapper (not the entire page)
-//     imageWrapper.style.position = "relative"; // Make sure wrapper is positioned correctly
-//     imageWrapper.appendChild(overlay);
-// };
 
 //helper function to add context menu
 const addContextMenu = (span, justification, sources) => {
