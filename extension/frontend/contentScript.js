@@ -108,7 +108,7 @@ const applyHighlight = (credibilityScore, justification, sources, text, category
     const lightness = 75;
 
     span.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-    span.title = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
+    span.title = `Category: ${category}`;
     span.classList.add('credibility-highlight');
     span.dataset.originalText = text; // Store the original text
     console.log("applyHighlight text: ", text);
@@ -773,7 +773,7 @@ function highlightTextNode(textNode, searchText, credibilityScore, justification
     const saturation = 100;
     const lightness = 75;
     span.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-    span.title = `Credibility Score: ${Math.round((1 - credibilityScore) * 100)}%`;
+    span.title = `Category: ${category}`;
     span.classList.add('credibility-highlight');
     span.dataset.originalText = matchText; // Store original text
     addContextMenu(span, justification, sources, searchText, category);
