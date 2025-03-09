@@ -587,7 +587,7 @@ const addImageContextMenu = (span, prediction, imageUrl, heatmap_image) => {
         // contextMenu.appendChild(image)
 
         // Credibility Score
-        if (prediction == 1) {
+        if (prediction == "1") {
             prediction = "Real";
         }
         else {
