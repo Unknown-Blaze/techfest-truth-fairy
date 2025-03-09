@@ -11,7 +11,6 @@ Truth Fairy empowers you to spot misinformation as you browse. Whether it’s a 
 - **Community Engagement 💬:** Join real-time discussions and view fact-checked comments via our built-in panel.
 - **Misinformation Scoring 📊:** Each statement is scored to indicate its reliability.
 
-[Explore our GitHub Repository](https://github.com/yourusername/truth-fairy) and join the movement towards a more informed online community!
 
 ---
 
