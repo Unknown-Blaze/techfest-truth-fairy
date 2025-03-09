@@ -580,17 +580,23 @@ const addImageContextMenu = (span, prediction, imageUrl, heatmap_image) => {
         contextMenu.classList.add('credibility-context-menu');
 
         // Image
-        const image = document.createElement('img');
-        image.src = imageUrl;
-        image.style.width = '80%';
-        image.style.height = '100px';
-        contextMenu.appendChild(image)
+        // const image = document.createElement('img');
+        // image.src = imageUrl;
+        // image.style.width = '80%';
+        // image.style.height = '100px';
+        // contextMenu.appendChild(image)
 
         // Credibility Score
-
+        if (prediction == 1) {
+            prediction = "Real";
+        }
+        else {
+            prediction = "Fake";
+        }
         const credibilityScore = prediction;
         const credibilityDisplay = document.createElement('div');
-        credibilityDisplay.textContent = `Credibility Score: ${credibilityScore}%`;
+        credibilityDisplay.classList.add('credibility-category');
+        credibilityDisplay.textContent = `This image is ${credibilityScore}`;
         credibilityDisplay.classList.add('context-menu-item');
         contextMenu.appendChild(credibilityDisplay);
 
