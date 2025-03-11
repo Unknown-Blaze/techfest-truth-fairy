@@ -499,55 +499,13 @@ const applyImageHighlight = (prediction, imageElement, imageUrl, heatmap) => {
     const hue = (prediction == 1 ? 100 : 0);
     const saturation = 100;
     const lightness = 75;
-    const highlightColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 
     // Apply a colored border to the image
     imageElement.style.border = `4px solid hsl(${hue}, ${saturation}%, ${lightness}%)`;
     imageElement.style.borderRadius = "5px";
     imageElement.title = prediction;
 
-    //Add to wrap images with the classList.
-    const wrapper = document.createElement("div");
-    wrapper.style.position = "relative";
-    wrapper.style.display = "inline-block";
-
-    // Add a semi-transparent overlay (optional)
-    const overlay = document.createElement("div");
-    overlay.classList.add("image-overlay");
-    overlay.style.position = "absolute";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.width = "100%";
-    overlay.style.height = "100%";
-    overlay.style.backgroundColor = highlightColor;
-    overlay.style.opacity = "0.3"; // Adjust transparency
-    overlay.style.pointerEvents = "none"; // Prevent interference with clicks
-
-    const label = document.createElement("div");
-    label.textContent = prediction == 1 ? "REAL" : "FAKE";
-    label.style.position = "absolute";
-    label.style.top = "4%"; // Slightly inside the top
-    label.style.right = "4%"; // Slightly inside the right
-    label.style.backgroundColor = prediction == 1 ? "rgba(34, 139, 34, 0.6)" : "rgba(220, 20, 60, 0.6)"; // Dark background for contrast
-    label.style.color = "white"; // White text for visibility
-    label.style.fontWeight = "bold";
-    label.style.padding = "2px 2px"; // Slightly more padding for balance
-    label.style.borderRadius = "8px"; // More rounded edges
-    label.style.zIndex = "10";
-    label.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)"; // Soft shadow for depth
-    label.style.fontFamily = "Poppins";
-
-    // Adjust text size based on image size
-    const imageWidth = imageElement.width;
-    label.style.fontSize = `${Math.max(imageWidth * 0.04, 6)}px`; // Scale text size
-
-    wrapper.appendChild(clonedImage);
-    wrapper.appendChild(overlay);
-    wrapper.appendChild(label);
-    //Call Add context menu
-    addImageContextMenu(wrapper, prediction, imageUrl, heatmap);
-
-    imageElement.replaceWith(wrapper);
+    addImageContextMenu(imageElement.parentElement, prediction, imageUrl, heatmap);
 };
 
 //helper function to add context menu
