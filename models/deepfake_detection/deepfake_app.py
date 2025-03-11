@@ -72,36 +72,3 @@ def overlay_heatmap_on_image(original_img, heatmap, alpha=0.5, colormap=cv2.COLO
     heatmap = cv2.applyColorMap(heatmap, colormap)
     overlay = cv2.addWeighted(original_img, 1 - alpha, heatmap, alpha, 0)
     return overlay
-
-@app.route('/predict', methods=['POST'])
-def predict():
-    if 'image' not in request.files:
-        return jsonify({'error': 'No image provided'}), 400
-
-    file = request.files['image']
-    try:
-        pil_img = Image.open(file.stream).convert("RGB")
-    except Exception as e:
-        return jsonify({'error': 'Invalid image file'}), 400
-
-    image_tensor = transform(pil_img).unsqueeze(0).to(device)
-
-    with torch.no_grad():
-        outputs = model(image_tensor)
-        _, pred = torch.max(outputs, 1)
-    prediction = pred.item()
-
-    heatmap = grad_cam.generate_heatmap(image_tensor, class_idx=prediction)
-    orig_img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
-    overlay = overlay_heatmap_on_image(orig_img, heatmap)
-
-    # Encode overlay image as JPEG and then to base64
-    _, buffer = cv2.imencode('.jpg', overlay)
-    overlay_bytes = buffer.tobytes()
-    overlay_base64 = base64.b64encode(overlay_bytes).decode('utf-8')
-
-    response = {
-        'prediction': prediction,
-        'heatmap_image': overlay_base64
-    }
-    return jsonify(response)
