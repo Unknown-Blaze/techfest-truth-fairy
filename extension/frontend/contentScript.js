@@ -412,29 +412,43 @@ const fetchFlaggedImages = async () => {
 
         // Highlight the flagged images
         flaggedImages.forEach((imageData) => {
-            highlightFlaggedImage(imageData.prediction, imageData.imageUrl, imageData.heatmap_image);
+            const images = document.querySelectorAll("img");
+
+            images.forEach((image) => {
+                // Check if the image URL contains the source URL in a normalized way
+                const normalizedImageSrc = new URL(image.src).href;
+                const normalizedFlaggedUrl = new URL(imageData.imageUrl).href;
+
+                if (normalizedImageSrc === normalizedFlaggedUrl) {
+                    console.log("Applying border and overlay for ", normalizedImageSrc)
+                    image.style.border = "3px solid red";
+                    highlightExistingImages(imageData.prediction, image, normalizedImageSrc, imageData.heatmap_image);
+                }
+            });
         });
     } catch (error) {
         console.error("Error fetching flagged images:", error);
     }
 };
 
-// Highlight flagged image based on URL
-const highlightFlaggedImage = (imagePrediction, imageUrl, heatmap_image) => {
-    const images = document.querySelectorAll("img");
+const highlightExistingImages = (prediction, imageElement, imageUrl, heatmapImage) => {
+    if (!imageElement) return;
 
-    images.forEach((image) => {
-        // Check if the image URL contains the source URL in a normalized way
-        const normalizedImageSrc = new URL(image.src).href;
-        const normalizedFlaggedUrl = new URL(imageUrl).href;
+    const hue = (prediction == 1 ? 100 : 0);
+    const saturation = 100;
+    const lightness = 75;
+    const highlightColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 
-        if (normalizedImageSrc === normalizedFlaggedUrl) {
-            // The key line!
-            console.log(`Highlighting image: ${normalizedImageSrc}`);
-            applyImageHighlight(imagePrediction, image, normalizedImageSrc, heatmap_image); // Pass URL here
-        }
-    });
+    imageElement.style.border = `4px solid ${highlightColor}`;
+    imageElement.style.borderRadius = "5px";
+    imageElement.title = prediction;
+
+    // Now I can print it
+    // Check if we are getting url for heatmap image
+    console.log("heatmapImage", heatmapImage);
+    addImageContextMenu(imageElement, prediction, imageUrl, heatmapImage);
 };
+
 // Listen for selection changes (No changes here)
 document.addEventListener('mouseup', (event) => {
     const selection = window.getSelection();
@@ -509,13 +523,8 @@ function hideImageContextMenu() {
 // }
 
 
-// Apply highlight with correct credibility score and add context menu (No changes)
-
 // Apply highlight for images
-// Apply highlight for images
-const applyImageHighlight = (prediction, imageElement, imageUrl, heatmap_image) => {
-    // console.log("Heatmap image apply image highlight BEFOREEEE", heatmap_image);
-    console.log("Apply Image highlight with: ", imageUrl);
+const applyImageHighlight = (prediction, imageElement, imageUrl, heatmap) => {
     if (!imageElement) return;
 
     // Calculate HSL color based on credibility score
@@ -525,14 +534,14 @@ const applyImageHighlight = (prediction, imageElement, imageUrl, heatmap_image) 
     const highlightColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 
     // Apply a colored border to the image
-    imageElement.style.border = `4px solid ${highlightColor}`;
+    imageElement.style.border = `4px solid hsl(${hue}, ${saturation}%, ${lightness}%)`;
     imageElement.style.borderRadius = "5px";
-
-    // Set tooltip for credibility score
     imageElement.title = prediction;
 
-    // Set tooltip for credibility score
-    imageElement.title = prediction
+    //Add to wrap images with the classList.
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    wrapper.style.display = "inline-block";
 
     // Add a semi-transparent overlay (optional)
     const overlay = document.createElement("div");
@@ -564,18 +573,11 @@ const applyImageHighlight = (prediction, imageElement, imageUrl, heatmap_image) 
     const imageWidth = imageElement.width;
     label.style.fontSize = `${Math.max(imageWidth * 0.04, 6)}px`; // Scale text size
 
-    // Wrap image in a container to properly position overlay
-    const wrapper = document.createElement("div");
-    wrapper.style.position = "relative";
-    wrapper.style.display = "inline-block";
-    wrapper.appendChild(imageElement.cloneNode(true)); // Clone the image
+    wrapper.appendChild(clonedImage);
     wrapper.appendChild(overlay);
     wrapper.appendChild(label);
-
-    // Make sure to attach context menu
-    // console.log("Heatmap image apply image highlight AFTERRRR", heatmap_image);
-    addImageContextMenu(wrapper, prediction, imageUrl, heatmap_image);
-    // Replace the original image with the wrapped version
+    //Call Add context menu
+    addImageContextMenu(wrapper, prediction, imageUrl, heatmap);
 
     imageElement.replaceWith(wrapper);
 };
