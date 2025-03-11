@@ -1,101 +1,117 @@
-/* Make sure the popup is constrained properly */
+/* Import the Poppins font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+/* Style the header to be a semi-transparent overlay */
+#header {
+    position: relative;
+    background-color: rgba(78, 142, 247, 0.8); /* Adjust opacity */
+    color: #fff;
+    text-align: center;
+}
+
 html, body {
   margin: 0;
   padding: 0;
-  width: 400px; /* was 380px */
-  max-height: 600px;
+  width: 400px; /* Make it slightly wider */
+  max-height: 600px; /* Enforce a scrollable maximum height */
   overflow-y: auto;
-  font-family: Arial, sans-serif;
-  background-color: #f2f2f2;
+  font-family: 'Poppins', sans-serif; /* Poppins for readability */
+  background-color: #f9f9f9; /* Softer background */
 }
 
-
-/* Main container */
 #main-container {
-  margin: 10px;
+  margin: 15px; /* More space around the container */
   background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  border-radius: 12px; /* Softer rounded corners */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Increased shadow */
   overflow: hidden;
 }
 
-/* Header with gradient */
-#header {
-  background: linear-gradient(to right, #4e8ef7, #6a77d9);
-  color: #fff;
-  text-align: center;
-  position: relative;
-}
-
-/* Header text */
-#header-content {
+/* Header and Title */
+#header h1 {
+  font-size: 26px;
+  margin: 0;
+  font-weight: 700;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
   padding: 20px;
 }
 
-#header h1 {
-  font-size: 18px;
-  margin: 0;
-  font-weight: 600;
-}
-
 #header h2 {
-  font-size: 14px;
-  margin: 5px 0 0;
-  font-weight: 400;
-  opacity: 0.9;
+  font-size: 16px;
+  margin: 8px 0 0;
+  font-weight: 500;
+  opacity: 0.8;
 }
 
-/* Wave effect */
+/* Wave effect - subtle and stylish */
 #header svg {
   display: block;
   width: 100%;
   height: auto;
-  margin-top: -1px; /* Prevents unwanted gap */
+  margin-bottom: -2px; /* Correct small gap */
 }
 
-/* Content area */
+/* Content Area */
 #content {
+  padding: 25px;
+}
+
+/* Feature Sections - Cards */
+.feature {
+  margin-bottom: 25px;
   padding: 20px;
+  border-radius: 10px;
+  background-color: #fafafa; /* Subtle background */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
-/* Two-column layout */
-#columns {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-/* Card-style columns */
-.column {
-  flex: 1;
-  background-color: #fafafa;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  padding: 15px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-}
-
-/* Headings in blue with icons */
-.column h3 {
-  margin: 0 0 10px;
-  font-size: 14px;
-  color: #007BFF;
-  font-weight: 600;
+.feature h3 {
+  font-size: 17px;
+  color: #2c3e50; /* Darker, calmer color */
+  margin: 0 0 12px;
   display: flex;
   align-items: center;
 }
 
-.column h3 svg {
-  margin-right: 6px;
-  min-width: 16px;
-  min-height: 16px;
+.feature h3 img {
+  margin-right: 8px;
+  width: 22px; /* Slightly larger icon size */
+  height: 22px;
+  opacity: 0.75;
 }
 
-/* Paragraph text */
-.column p {
-  font-size: 13px;
-  line-height: 1.5;
-  margin: 0;
-  color: #333;
+.feature p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #555;
+}
+
+/* 'How to Use' instructions */
+.feature p strong {
+  font-weight: 600;
+  color: #3498db; /* Attention-grabbing blue */
+}
+
+/* Full Guide Link */
+.full-guide-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  background-color: #3498db; /* Vibrant blue */
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 15px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.full-guide-link svg {
+  margin-right: 8px;
+  opacity: 0.7;
+}
+
+.full-guide-link:hover {
+  background-color: #2980b9;
 }
