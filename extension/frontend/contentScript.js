@@ -491,38 +491,6 @@ function hideImageContextMenu() {
     }
 }
 
-// let hoverTimeout;
-
-// document.addEventListener('mouseover', (event) => {
-//     const target = event.target;
-//     if (target.tagName !== 'IMG') return;
-
-//     clearTimeout(hoverTimeout);
-
-//     const rect = target.getBoundingClientRect();
-//     const buttonX = rect.right + window.scrollX + 5;
-//     const buttonY = rect.top + window.scrollY - 30;
-
-//     showFlagButton(buttonX, buttonY);
-
-//     const button = document.getElementById('flag-button');
-//     button.addEventListener('mouseenter', () => clearTimeout(hoverTimeout));
-//     button.addEventListener('mouseleave', () => hideFlagButtonWithDelay());
-// });
-
-// document.addEventListener('mouseout', (event) => {
-//     if (event.target.tagName === 'IMG') {
-//         hideFlagButtonWithDelay();
-//     }
-// });
-
-// function hideFlagButtonWithDelay() {
-//     hoverTimeout = setTimeout(() => {
-//         hideFlagButton();
-//     }, 1000);
-// }
-
-
 // Apply highlight for images
 const applyImageHighlight = (prediction, imageElement, imageUrl, heatmap) => {
     if (!imageElement) return;

@@ -1,0 +1,130 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Container for consistent spacing */
+.container {
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header Styles */
+header {
+    background-color: #343a40;
+    color: #fff;
+    padding: 40px 0;
+    text-align: center;
+    margin-bottom: 30px; /* Spacing below the header */
+}
+
+header h1 {
+    font-size: 2.8em;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: skyblue
+}
+
+header p {
+    font-size: 1.2em;
+    opacity: 0.8;
+    color: skyblue
+}
+
+/* Main Content Styles */
+main {
+    padding: 20px 0;
+}
+
+/* Module Styles (Sections) */
+.module {
+    padding: 30px;
+    margin-bottom: 30px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+
+    &:hover {
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Alternating Backgrounds for Modules */
+.module.alt {
+    background-color: #f1f3f5;
+}
+
+.module h2 {
+    font-size: 2.2em;
+    font-weight: 600;
+    color: #343a40;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.module p {
+    font-size: 1.1em;
+    color: #555;
+}
+
+.module ol {
+    padding-left: 25px;
+}
+
+.module li {
+    font-size: 1.1em;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+/* Footer Styles */
+footer {
+    background-color: #343a40;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 50px;
+    color: skyblue
+}
+
+footer p {
+    font-size: 0.9em;
+    opacity: 0.7;
+    color: skyblue
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+        padding: 15px;
+    }
+
+    header {
+        padding: 30px 0;
+    }
+
+    header h1 {
+        font-size: 2.2em;
+    }
+
+    .module {
+        padding: 20px;
+    }
+
+    .module h2 {
+        font-size: 1.8em;
+    }
+
+    .module li {
+        font-size: 1em;
+    }
+}
