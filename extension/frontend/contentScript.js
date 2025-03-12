@@ -613,10 +613,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Fetch flagged images from the backend
 const fetchFlaggedImages = async () => {
+    website = window.location.href;
     try {
-        const response = await fetch("http://localhost:3000/flaggedImages");
+        // Include the website URL as a query parameter in the request
+        const response = await fetch(`http://localhost:3000/flaggedImages?website=${encodeURIComponent(website)}`);
         const flaggedImages = await response.json();
-        console.log("Flagged images:", flaggedImages);
+        console.log("Flagged images for the website:", flaggedImages);
 
         flaggedImages.forEach((imageData) => {
             highlightFlaggedImage(imageData.prediction, imageData.imageUrl, imageData.heatmap_image);
@@ -625,6 +627,7 @@ const fetchFlaggedImages = async () => {
         console.error("Error fetching flagged images:", error);
     }
 };
+
 
 // Highlight flagged image based on URL
 const highlightFlaggedImage = (imagePrediction, imageUrl, heatmap_image) => {
