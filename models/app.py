@@ -151,7 +151,7 @@ def predict():
         return jsonify({'error': 'Failed to fetch media', 'details': str(e)}), 400
 
     content_type = response.headers.get('Content-Type', '').lower()
-    if 'video' in content_type:
+    if 'video' in content_type or media_url.lower().endswith(('.mp4', '.avi', '.mov')):
         # --- VIDEO PROCESSING ---
         try:
             video_temp_path = secure_filename('temp_video.mp4')
