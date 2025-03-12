@@ -592,7 +592,7 @@ const fetchFlaggedMedia = async () => {
         console.log("Flagged media for the website:", flaggedMedia);
         flaggedMedia.forEach((mediaData) => {
             if (mediaData.mediaType === 'image') {
-                highlightFlaggedImage(mediaData.prediction, mediaData.mediaURL, mediaData.heatmap_image);
+                highlightFlaggedImage(mediaData.prediction, mediaData.mediaUrl, mediaData.heatmap_image);
             } else if (mediaData.mediaType === 'video') {
                 highlightFlaggedVideo(mediaData.prediction, mediaData.mediaUrl, mediaData.heatmap_image);
             }
@@ -1106,7 +1106,7 @@ const showImageDiscussionPanel = async (imageUrl, heatmap_image) => {
     });
     header.appendChild(closeButton);
 
-    const discussion_title = document.createElement('h1');
+    const discussion_title = document.createElement('div');
     discussion_title.id = 'discussion-title';
     discussion_title.textContent = `Image Analysis Summary`;
     discussionPanel.appendChild(discussion_title);
