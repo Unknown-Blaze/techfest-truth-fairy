@@ -13,15 +13,19 @@
 	position: absolute;
 	background-color: white;
 	border: 1px solid #ccc;
-	padding: 10px;
+	padding: 12px;
 	z-index: 10001;
 	display: none;
-	border-radius: 5px;
-	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+	border-radius: 8px;
+	/* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); */
+	box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.15);
 	min-width: 200px;
 	align-items: justify;
 	max-width: 25%;
 	max-height: fit-content;
+	font-family: 'Poppins', sans-serif;
+	transform: scale(0.95);
+	transition: opacity 0.2s ease-out, transform 0.2s ease-out;
 }
 
 .context-menu-item {
@@ -455,19 +459,6 @@
 	align-items: center;
 }
 /* --------------------This is for image box ------------------- */
-.credibility-context-menu {
-	position: absolute;
-	background-color: white;
-	border-radius: 8px;
-	box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.15);
-	padding: 12px;
-	min-width: 200px; /* Increased width for a better view */
-	z-index: 1000;
-	font-family: 'Poppins', sans-serif;
-	opacity: 0;
-	transform: scale(0.95);
-	transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-}
 
 .credibility-category {
 	font-size: 14px;
@@ -497,73 +488,19 @@
 	background: #0056b3;
 }
 
-/* Styling the icons next to the "Real" or "Fake" text */
 .credibility-category svg {
 	margin-right: 8px;
 	font-size: 18px;
 }
 
-/* Styling for Real Image */
 .credibility-category.real {
-	background-color: #d4edda; /* Light green */
-	color: #155724; /* Dark green */
+	background-color: #d4edda;
+	color: #155724;
 }
 
-/* Styling for Fake Image */
 .credibility-category.fake {
-	background-color: #f8d7da; /* Light red */
-	color: #721c24; /* Dark red */
-}
-
-/* ------------------------------This is for video --------------------------------*/
-.credibility-context-menu {
-	position: absolute;
-	background-color: #fff;
-	border-radius: 8px;
-	box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.15);
-	padding: 12px;
-	min-width: 200px;
-	z-index: 1000;
-	font-family: 'Poppins', sans-serif;
-	opacity: 0;
-	transform: scale(0.95);
-	transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-	display: block;
-}
-
-.credibility-category {
-	font-size: 14px;
-	font-weight: bold;
-	color: #444;
-	margin-bottom: 8px;
-	padding: 8px;
-	background-color: #f8f9fa;
-	border-radius: 6px;
-	text-align: center;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.credibility-category span {
-	margin-left: 8px;
-	font-size: 16px;
-}
-
-.context-menu-button {
-	width: 100%;
-	background: #007bff;
-	color: white;
-	border: none;
-	padding: 10px;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 14px;
-	transition: background 0.2s;
-}
-
-.context-menu-button:hover {
-	background: #0056b3;
+	background-color: #f8d7da;
+	color: #721c24;
 }
 
 /* ---------------------Display pannel for image------------------------------- */
