@@ -383,19 +383,26 @@ const handleVideoFlag = async (videoElement) => {
 // Apply highlight for videos – updated to mimic image UI
 const applyVideoHighlight = (prediction, videoElement, videoUrl, heatmap_image) => {
     console.log("Apply video highlight with:", videoUrl);
-    if (!videoElement) return;
+    if (!videoElement) {
+      console.error("applyVideoHighlight: videoElement is null");
+      return;
+    }
   
-    // Calculate the highlight color
     const hue = (prediction == 1 ? 100 : 0);
     const highlightColor = `hsl(${hue}, 100%, 75%)`;
+    console.log("Calculated highlight color:", highlightColor);
   
-    // Create a wrapper div
+    // Create a wrapper div and move the video element into it
     const wrapper = document.createElement("div");
     wrapper.style.position = "relative";
     wrapper.style.display = "inline-block";
-    // Move the video element into the wrapper instead of cloning:
+    // Set the wrapper dimensions to match the video element
+    wrapper.style.width = videoElement.offsetWidth + "px";
+    wrapper.style.height = videoElement.offsetHeight + "px";
+  
     videoElement.parentNode.insertBefore(wrapper, videoElement);
     wrapper.appendChild(videoElement);
+    console.log("Video element moved into wrapper.");
   
     // Apply a border to the wrapper
     wrapper.style.border = `4px solid ${highlightColor}`;
@@ -415,7 +422,6 @@ const applyVideoHighlight = (prediction, videoElement, videoUrl, heatmap_image) 
     overlay.style.zIndex = "10";
     overlay.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
     overlay.style.fontFamily = "Poppins";
-    // Use the same color scheme as the image overlay:
     if (prediction == 1 || prediction === "Real") {
       overlay.style.backgroundColor = "#d4edda";
       overlay.style.color = "#155724";
@@ -425,9 +431,12 @@ const applyVideoHighlight = (prediction, videoElement, videoUrl, heatmap_image) 
     }
   
     wrapper.appendChild(overlay);
-    // Attach the context menu as before
+    console.log("Overlay added to wrapper.");
+  
     addVideoContextMenu(wrapper, prediction, videoUrl, heatmap_image);
+    console.log("Context menu attached to video wrapper.");
   };
+
   
   
   // Updated video context menu to use same UI as images
