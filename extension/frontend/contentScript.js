@@ -382,39 +382,30 @@ const handleVideoFlag = async (videoElement) => {
 // Apply highlight for videos
 // Apply highlight for videos – updated to mimic image UI
 const applyVideoHighlight = (prediction, videoElement, videoUrl, heatmap_image) => {
-    console.log("Apply video highlight with: ", videoUrl);
+    console.log("Apply video highlight with:", videoUrl);
     if (!videoElement) return;
   
-    // Calculate HSL color based on prediction
+    // Calculate the highlight color
     const hue = (prediction == 1 ? 100 : 0);
-    const saturation = 100;
-    const lightness = 75;
-    const highlightColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    const highlightColor = `hsl(${hue}, 100%, 75%)`;
   
-    // Apply a border to the video element
-    videoElement.style.border = `4px solid ${highlightColor}`;
-    videoElement.style.borderRadius = "5px";
-    videoElement.title = prediction;
-  
-    // Wrap the video element to add an overlay label
+    // Create a wrapper div
     const wrapper = document.createElement("div");
     wrapper.style.position = "relative";
     wrapper.style.display = "inline-block";
-    // Clone the video element into the wrapper
-    wrapper.appendChild(videoElement.cloneNode(true));
+    // Move the video element into the wrapper instead of cloning:
+    videoElement.parentNode.insertBefore(wrapper, videoElement);
+    wrapper.appendChild(videoElement);
   
-    // Create overlay label styled like the image version
+    // Apply a border to the wrapper
+    wrapper.style.border = `4px solid ${highlightColor}`;
+    wrapper.style.borderRadius = "5px";
+  
+    // Create an overlay label
     const overlay = document.createElement("div");
-    // Use same text and styling as the image overlay
-    if (prediction == 1 || prediction === "Real") {
-      overlay.innerHTML = `✔️ This video is Real`;
-      overlay.style.backgroundColor = "#d4edda"; // green background
-      overlay.style.color = "#155724"; // dark green text
-    } else {
-      overlay.innerHTML = `❌ This video is Fake`;
-      overlay.style.backgroundColor = "#f8d7da"; // red background
-      overlay.style.color = "#721c24"; // dark red text
-    }
+    overlay.innerHTML = prediction == 1 || prediction === "Real" 
+                          ? `✔️ This video is Real` 
+                          : `❌ This video is Fake`;
     overlay.style.position = "absolute";
     overlay.style.top = "4%";
     overlay.style.right = "4%";
@@ -424,15 +415,20 @@ const applyVideoHighlight = (prediction, videoElement, videoUrl, heatmap_image) 
     overlay.style.zIndex = "10";
     overlay.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
     overlay.style.fontFamily = "Poppins";
+    // Use the same color scheme as the image overlay:
+    if (prediction == 1 || prediction === "Real") {
+      overlay.style.backgroundColor = "#d4edda";
+      overlay.style.color = "#155724";
+    } else {
+      overlay.style.backgroundColor = "#f8d7da";
+      overlay.style.color = "#721c24";
+    }
   
     wrapper.appendChild(overlay);
-  
-    // Attach a context menu for videos (updated below)
+    // Attach the context menu as before
     addVideoContextMenu(wrapper, prediction, videoUrl, heatmap_image);
-  
-    // Replace the original video element with the wrapper
-    videoElement.replaceWith(wrapper);
   };
+  
   
   // Updated video context menu to use same UI as images
   const addVideoContextMenu = (container, prediction, videoUrl, heatmap_image) => {
