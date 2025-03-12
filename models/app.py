@@ -71,10 +71,10 @@ def fact_check():
         + search_context
         + "\nUser Flagged Text: "
         + flagged_text
-        # +"\nTimestamp:"
-        # + timestamp if timestamp is not None else "N/A"
-        # + "\n"
-        # + f"Article Information was derived from: {flagged_url}"
+        +"\nTimestamp:"
+        + timestamp if timestamp is not None else "N/A"
+        + "\n"
+        + f"Article Information was derived from: {flagged_url}"
     )
 
     # Make the API call correctly
@@ -87,8 +87,8 @@ def fact_check():
                 "Users have flagged this text for a possible instance of misinformation. I need you to verify if this information is indeed misinformation or if it's real."
                 "When fact-checking, ensure you cross-reference the flagged statement with multiple trusted and up-to-date sources to verify its validity. Avoid relying on a single source unless absolutely necessary."
                 "For statements regarding facts that can change over time (e.g., rankings, statistics, or leadership positions), always check if the current data contradicts the claim, but also take into account the publication date of the source to assess if the statement was true at the time of publishing."
-                # "If the timestamp for the webpage is provided and not N/A, you should check whether the flagged statement is true or false as of the date it was written."
-                "There's a possibility that the user-highlighted text requires context present within the article, hence you will see the webpage linked as well to further influence your decisions."
+                "If the timestamp is N/A, disregard it. Otherwise, you should check whether the flagged statement is true or false as of the date it was written."
+                "There's a possibility that the user-highlighted text requires context present within the article, hence you will see the webpage linked under 'Article Information was derived from:' as well to further influence your decisions."
                 "Your decision should be made after consulting the additional context provided in the prompt, which could possibly influence your final decision."
                 "Even though you consult the context, your focus is purely on validating the user flagged text."
                 "The statements made in the additional context are entirely valid, as they're retrieved from current-day search engines. You should not try to falsify those."
@@ -98,7 +98,8 @@ def fact_check():
                 "You need to follow your response with justification of how you arrived at that conclusion."
                 "I need you to find and return the sources/links validating your justification, so users will know."
                 "Please make your justification not more than 3 sentences long."
-                "The output returned needs to be strictly in the JSON format provided: {'category': Chosen one from this list ['Real', 'Fake', 'Cannot Verify'], 'justification': provided justification, 'sources': a list of sources found on the relevant topics}",
+                "If the text is verified as Real or Fake, I need you to provide the specific sub-text you found to be misinformation and return that in the JSON as well. The sub-text should simply be a substring of the original text, do not paraphrase anything. If it's unverifiable, leave the string empty."
+                "The output returned needs to be strictly in the JSON format provided: {'category': Chosen one from this list ['Real', 'Fake', 'Cannot Verify'], 'justification': provided justification, 'sources': a list of sources found on the relevant topics, 'subtext': subtext}",
             },
             {"role": "user", "content": full_context},
         ],

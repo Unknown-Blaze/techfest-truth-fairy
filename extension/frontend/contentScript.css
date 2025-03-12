@@ -452,24 +452,19 @@
 	border: 1px solid #ccc;
 	border-radius: 3px;
 }
-
-.credibility-category {
-	font-size: 18px;
-	font-weight: bold;
-	align-items: center;
-}
 /* --------------------This is for image box ------------------- */
 
 .credibility-category {
-	font-size: 14px;
+	font-size: 24px;
 	font-weight: bold;
 	padding: 8px;
 	border-radius: 6px;
 	text-align: center;
-	margin-bottom: 8px;
+	margin-bottom: 2px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	text-decoration: underline;
 }
 
 .context-menu-button {
