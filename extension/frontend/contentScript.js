@@ -433,6 +433,49 @@ const applyVideoHighlight = (prediction, videoElement, videoUrl, heatmap_image) 
 };
 
 // Add a context menu for flagged videos
+// const addVideoContextMenu = (container, prediction, videoUrl, heatmap_image) => {
+//     container.addEventListener('contextmenu', (event) => {
+//         event.stopImmediatePropagation();
+//         event.preventDefault();
+
+//         let existingContextMenu = document.getElementById('credibility-video-context-menu');
+//         if (existingContextMenu) {
+//             existingContextMenu.remove();
+//         }
+
+//         let contextMenu = document.createElement('div');
+//         contextMenu.id = 'credibility-video-context-menu';
+//         contextMenu.classList.add('credibility-context-menu');
+
+//         const credibilityDisplay = document.createElement('div');
+//         credibilityDisplay.classList.add('credibility-category');
+//         const predText = (prediction == 1 || prediction === "Real") ? "Real" : "Fake";
+//         credibilityDisplay.textContent = `This video is ${predText}`;
+//         credibilityDisplay.classList.add('context-menu-item');
+//         contextMenu.appendChild(credibilityDisplay);
+
+//         const discussOption = document.createElement('button');
+//         discussOption.textContent = 'Discuss';
+//         discussOption.classList.add('context-menu-button');
+//         discussOption.addEventListener('click', () => {
+//             showImageDiscussionPanel(videoUrl, heatmap_image);
+//             contextMenu.remove();
+//         });
+//         contextMenu.appendChild(discussOption);
+
+//         document.body.appendChild(contextMenu);
+//         contextMenu.style.left = `${event.pageX}px`;
+//         contextMenu.style.top = `${event.pageY}px`;
+//         contextMenu.style.display = 'block';
+//     });
+
+//     document.addEventListener('click', (e) => {
+//         if (!e.target.closest('.credibility-video-context-menu')) {
+//             let contextMenu = document.getElementById('credibility-video-context-menu');
+//             if (contextMenu) contextMenu.remove();
+//         }
+//     });
+// };
 const addVideoContextMenu = (container, prediction, videoUrl, heatmap_image) => {
     container.addEventListener('contextmenu', (event) => {
         event.stopImmediatePropagation();
@@ -447,15 +490,22 @@ const addVideoContextMenu = (container, prediction, videoUrl, heatmap_image) => 
         contextMenu.id = 'credibility-video-context-menu';
         contextMenu.classList.add('credibility-context-menu');
 
+        // Rephrased credibility message with icons
         const credibilityDisplay = document.createElement('div');
         credibilityDisplay.classList.add('credibility-category');
-        const predText = (prediction == 1 || prediction === "Real") ? "Real" : "Fake";
-        credibilityDisplay.textContent = `This video is ${predText}`;
+        const predText = (prediction == 1 || prediction === "Real")
+            ? "Verified: This video is real."
+            : "Warning: This video may be altered or manipulated.";
+        const icon = (prediction == 1 || prediction === "Real")
+            ? "✔️"
+            : "⚠️";
+        credibilityDisplay.textContent = `${icon} ${predText}`;
         credibilityDisplay.classList.add('context-menu-item');
         contextMenu.appendChild(credibilityDisplay);
 
+        // Discuss button with an icon
         const discussOption = document.createElement('button');
-        discussOption.textContent = 'Discuss';
+        discussOption.innerHTML = '💬 Discuss';
         discussOption.classList.add('context-menu-button');
         discussOption.addEventListener('click', () => {
             showImageDiscussionPanel(videoUrl, heatmap_image);
@@ -476,6 +526,7 @@ const addVideoContextMenu = (container, prediction, videoUrl, heatmap_image) => 
         }
     });
 };
+
 
 // ===== End of Video Flagging Functions =====
 
@@ -624,13 +675,6 @@ document.addEventListener('mouseover', (event) => {
     }
 });
 
-function hideImageContextMenu() {
-    let contextMenu = document.getElementById('credibility-image-context-menu');
-    if (contextMenu) {
-        contextMenu.remove();
-    }
-}
-
 // --- Existing Highlighting & Discussion Functions (unchanged) ---
 
 const applyImageHighlight = (prediction, imageElement, imageUrl, heatmap_image) => {
@@ -700,7 +744,7 @@ const addContextMenu = (span, justification, sources, text, category) => {
         contextMenu.id = 'credibility-context-menu';
         contextMenu.classList.add('credibility-context-menu');
         console.log("add context menu category: ", category);
-        if (category === "Cannot Verify") 
+        if (category === "Cannot Verify")
             category = "unverifiable";
         const categoryValue = document.createElement('div');
         categoryValue.classList.add('credibility-category');
@@ -736,37 +780,91 @@ const addContextMenu = (span, justification, sources, text, category) => {
     });
 };
 
+// const addImageContextMenu = (span, prediction, imageUrl, heatmap_image) => {
+//     span.addEventListener('contextmenu', (event) => {
+//         console.log("add image context menu: ", heatmap_image);
+//         event.stopImmediatePropagation();
+//         event.preventDefault();
+
+//         let existingContextMenu = document.getElementById('credibility-image-context-menu');
+//         if (existingContextMenu) {
+//             existingContextMenu.remove();
+//         }
+
+//         let contextMenu = document.createElement('div');
+//         contextMenu.id = 'credibility-image-context-menu';
+//         contextMenu.classList.add('credibility-context-menu');
+
+//         console.log("Prediction: ", prediction);
+//         if (prediction === "1" || prediction === 1 || prediction === "Real") {
+//             prediction = "Real";
+//         }
+//         else {
+//             prediction = "Fake";
+//         }
+//         const credibilityScore = prediction;
+//         const credibilityDisplay = document.createElement('div');
+//         credibilityDisplay.classList.add('credibility-category');
+//         credibilityDisplay.textContent = `This image is ${credibilityScore}`;
+//         credibilityDisplay.classList.add('context-menu-item');
+//         contextMenu.appendChild(credibilityDisplay);
+
+//         const discussOption = document.createElement('button');
+//         discussOption.textContent = 'Discuss';
+//         discussOption.classList.add('context-menu-button');
+//         discussOption.addEventListener('click', () => {
+//             showImageDiscussionPanel(imageUrl, heatmap_image);
+//             hideImageContextMenu();
+//         });
+//         contextMenu.appendChild(discussOption);
+
+//         document.body.appendChild(contextMenu);
+//         contextMenu.style.left = `${event.pageX}px`;
+//         contextMenu.style.top = `${event.pageY}px`;
+//         contextMenu.style.display = 'block';
+//     });
+
+//     document.addEventListener('click', (e) => {
+//         if (!e.target.closest('.credibility-image-context-menu')) {
+//             hideImageContextMenu();
+//         }
+//     });
+// };
 const addImageContextMenu = (span, prediction, imageUrl, heatmap_image) => {
     span.addEventListener('contextmenu', (event) => {
         console.log("add image context menu: ", heatmap_image);
         event.stopImmediatePropagation();
         event.preventDefault();
 
-        let existingContextMenu = document.getElementById('credibility-image-context-menu');
-        if (existingContextMenu) {
-            existingContextMenu.remove();
-        }
+        // Remove any existing context menu
+        document.getElementById('credibility-image-context-menu')?.remove();
 
-        let contextMenu = document.createElement('div');
+        // Create the context menu
+        const contextMenu = document.createElement('div');
         contextMenu.id = 'credibility-image-context-menu';
         contextMenu.classList.add('credibility-context-menu');
 
-        console.log("Prediction: ", prediction);
-        if (prediction === "1" || prediction === 1 || prediction === "Real") {
-            prediction = "Real";
-        }
-        else {
-            prediction = "Fake";
-        }
-        const credibilityScore = prediction;
+        // Determine credibility and display corresponding icon
+        const credibilityText = prediction == "1" || prediction == 1 || prediction == "Real" ? "Real" : "Fake";
         const credibilityDisplay = document.createElement('div');
         credibilityDisplay.classList.add('credibility-category');
-        credibilityDisplay.textContent = `This image is ${credibilityScore}`;
-        credibilityDisplay.classList.add('context-menu-item');
+
+        // Add icons for "Real" or "Fake"
+        if (credibilityText === "Real") {
+            credibilityDisplay.innerHTML = `✔️ This image is ${credibilityText}`;
+            credibilityDisplay.style.backgroundColor = "#d4edda"; // Green background
+            credibilityDisplay.style.color = "#155724"; // Dark green text
+        } else {
+            credibilityDisplay.innerHTML = `❌ This image is ${credibilityText}`;
+            credibilityDisplay.style.backgroundColor = "#f8d7da"; // Red background
+            credibilityDisplay.style.color = "#721c24"; // Dark red text
+        }
+
         contextMenu.appendChild(credibilityDisplay);
 
+        // Discussion button
         const discussOption = document.createElement('button');
-        discussOption.textContent = 'Discuss';
+        discussOption.textContent = '💬 Discuss';
         discussOption.classList.add('context-menu-button');
         discussOption.addEventListener('click', () => {
             showImageDiscussionPanel(imageUrl, heatmap_image);
@@ -774,18 +872,43 @@ const addImageContextMenu = (span, prediction, imageUrl, heatmap_image) => {
         });
         contextMenu.appendChild(discussOption);
 
+        // Positioning & adding to DOM
         document.body.appendChild(contextMenu);
         contextMenu.style.left = `${event.pageX}px`;
         contextMenu.style.top = `${event.pageY}px`;
         contextMenu.style.display = 'block';
+
+        // Fade-in animation
+        setTimeout(() => {
+            contextMenu.style.opacity = "1";
+            contextMenu.style.transform = "scale(1)";
+        }, 10);
     });
 
+    // Hide menu on click outside
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.credibility-image-context-menu')) {
+        if (!e.target.closest('.credibility-context-menu')) {
             hideImageContextMenu();
         }
     });
 };
+
+// function hideImageContextMenu() {
+//     let contextMenu = document.getElementById('credibility-image-context-menu');
+//     if (contextMenu) {
+//         contextMenu.remove();
+//     }
+// }
+
+function hideImageContextMenu() {
+    const menu = document.getElementById('credibility-image-context-menu');
+    if (menu) {
+        menu.style.opacity = "0";
+        menu.style.transform = "scale(0.95)";
+        setTimeout(() => menu.remove(), 300);
+    }
+}
+
 
 const removeHighlight = (span) => {
     const parent = span.parentNode;
@@ -1184,7 +1307,7 @@ const showDiscussionPanel = async (text, justification, sources) => {
 
 const fetchAndDisplayDiscussion = async (text_or_image, discussionContainer) => {
     let discussionPanel = document.getElementById('discussion-panel');
-    if (!discussionPanel){
+    if (!discussionPanel) {
         return;
     }
 
@@ -1276,9 +1399,9 @@ const displayDiscussionThread = (discussionThread, discussionContainer) => {
 
         if (userId === 'ejjjimhfldejgofhjjgfpkhphlfjjokg') {
             userId = 'unknown_rudra'
-        }else if (userId === 'oekefgamihofmlabmopoamhdjbekhejk') {
+        } else if (userId === 'oekefgamihofmlabmopoamhdjbekhejk') {
             userId = 'esvar2004'
-        }else if (userId === 'amapagdohinlpjibdfbpfgigkogeklcd') {
+        } else if (userId === 'amapagdohinlpjibdfbpfgigkogeklcd') {
             userId = 'teja02'
         }
 
@@ -1286,7 +1409,7 @@ const displayDiscussionThread = (discussionThread, discussionContainer) => {
         userElement.classList.add('user');
         if (userId === 'You') {
             userElement.textContent = `You:`;
-        }else{
+        } else {
             userElement.textContent = `User: ${userId}`;
         }
 
@@ -1353,9 +1476,9 @@ function appendMessage(messageObj, container) {
 
     if (userId === 'ejjjimhfldejgofhjjgfpkhphlfjjokg') {
         userId = 'unknown_rudra'
-    }else if (userId === 'oekefgamihofmlabmopoamhdjbekhejk') {
+    } else if (userId === 'oekefgamihofmlabmopoamhdjbekhejk') {
         userId = 'esvar2004'
-    }else if (userId === 'amapagdohinlpjibdfbpfgigkogeklcd') {
+    } else if (userId === 'amapagdohinlpjibdfbpfgigkogeklcd') {
         userId = 'teja02'
     }
 
@@ -1363,7 +1486,7 @@ function appendMessage(messageObj, container) {
     userElement.classList.add('user');
     if (userId === 'You') {
         userElement.textContent = `You:`;
-    }else{
+    } else {
         userElement.textContent = `User: ${userId}`;
     }
 

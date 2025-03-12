@@ -10,51 +10,51 @@
 	border-radius: 3px;
 }
 .credibility-context-menu {
-    position: absolute;
-    background-color: white;
-    border: 1px solid #ccc;
-    padding: 10px;
-    z-index: 10001;
-    display: none;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    min-width: 200px;
-    align-items: justify;
-    max-width: 25%;
-    max-height: fit-content;
+	position: absolute;
+	background-color: white;
+	border: 1px solid #ccc;
+	padding: 10px;
+	z-index: 10001;
+	display: none;
+	border-radius: 5px;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+	min-width: 200px;
+	align-items: justify;
+	max-width: 25%;
+	max-height: fit-content;
 }
 
 .context-menu-item {
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-    margin-bottom: 5px;
-    font-size: 14px;
-    align-items: justify;
-    max-width: 100%;
+	padding: 8px 0;
+	border-bottom: 1px solid #eee;
+	margin-bottom: 5px;
+	font-size: 14px;
+	align-items: justify;
+	max-width: 100%;
 }
 
 .context-menu-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
+	border-bottom: none;
+	margin-bottom: 0;
 }
 
 .context-menu-item:first-child {
-    font-weight: bold;
+	font-weight: bold;
 }
 
 .context-menu-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    align-items: center;
+	background-color: #007bff;
+	color: white;
+	border: none;
+	padding: 8px 12px;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 14px;
+	align-items: center;
 }
 
 .context-menu-button:hover {
-    background-color: #0056b3;
+	background-color: #0056b3;
 }
 
 .discussion-popup {
@@ -79,7 +79,6 @@
 
 #close-popup {
 	float: right;
-
 }
 
 #discussion-title,
@@ -87,7 +86,7 @@
 #heatmap-title {
 	text-align: center;
 	width: 100%; /* Make the header span the full width */
-    display: block; /* Ensures width is respected */
+	display: block; /* Ensures width is respected */
 	font-family: 'Copperplate';
 }
 
@@ -99,45 +98,45 @@
 #heatmap-explanation {
 	text-align: center;
 	width: 100%; /* Make the header span the full width */
-    display: block; /* Ensures width is respected */
+	display: block; /* Ensures width is respected */
 	font-family: 'Copperplate';
-    font-weight: lighter;
-    font-size: 12px;  
+	font-weight: lighter;
+	font-size: 12px;
 }
 
 /* Style for discussion-descriptions */
 #discussion-description {
-    font-size: 16px;                /* Larger font size for impact */
-    font-family: 'Georgia';   /* Bold and modern font */
-    font-weight: 100;                /* Make it extra bold */
-    letter-spacing: 1.2px;           /* Increased letter spacing for emphasis */
-    color: #000000;                 /* Dark, professional color */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);  /* Subtle shadow for depth */
-    margin-bottom: 15px;            /* Space below the discussion-description */
-    position: relative;              /* For pseudo-element positioning */
-    padding-bottom: 8px;              /* Space below the text */
+	font-size: 16px; /* Larger font size for impact */
+	font-family: 'Georgia'; /* Bold and modern font */
+	font-weight: 100; /* Make it extra bold */
+	letter-spacing: 1.2px; /* Increased letter spacing for emphasis */
+	color: #000000; /* Dark, professional color */
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+	margin-bottom: 15px; /* Space below the discussion-description */
+	position: relative; /* For pseudo-element positioning */
+	padding-bottom: 8px; /* Space below the text */
 	padding-left: 2%;
 	padding-top: 2%;
-    display: inline-block;           /* Allows width to be only as wide as its content */
+	display: inline-block; /* Allows width to be only as wide as its content */
 }
 
 /* Underline effect */
 #discussion-description:before {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 3px;
-    background-color: #000000;      /* A vibrant color */
-    border-radius: 5px;
-    transform: scaleX(0);            /* Initially hide the underline */
-    transform-origin: left;          /* Grow from the left */
-    transition: transform 0.4s ease-out; /* Smooth animation */
+	content: '';
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	height: 3px;
+	background-color: #000000; /* A vibrant color */
+	border-radius: 5px;
+	transform: scaleX(0); /* Initially hide the underline */
+	transform-origin: left; /* Grow from the left */
+	transition: transform 0.4s ease-out; /* Smooth animation */
 }
 
 #discussion-description:hover:before {
-    transform: scaleX(1);            /* Show the underline on hover */
+	transform: scaleX(1); /* Show the underline on hover */
 }
 
 #discussion-panel {
@@ -156,83 +155,82 @@
 }
 
 #discussion-panel img {
-    width: 100%; /* Make images take up full width of the panel */
-    margin: 0 auto;
-    height: auto; /* Maintain aspect ratio */
-    max-height: 50%; /* Ensure images do not exceed half of the panel */
-    object-fit: contain; /* Prevent stretching */
-    align-items: center;
+	width: 100%; /* Make images take up full width of the panel */
+	margin: 0 auto;
+	height: auto; /* Maintain aspect ratio */
+	max-height: 50%; /* Ensure images do not exceed half of the panel */
+	object-fit: contain; /* Prevent stretching */
+	align-items: center;
 }
 
 #discussion-header {
 	display: flex;
 	justify-content: space-between; /* Push buttons to opposite corners */
-	align-items: center;            /* Vertically align buttons */
-	padding: 2px;                  /* Add spacing around the container */
-  }
+	align-items: center; /* Vertically align buttons */
+	padding: 2px; /* Add spacing around the container */
+}
 
 #bottom-header {
 	display: flex;
 	justify-content: space-between; /* Push buttons to opposite corners */
-	align-items: center;            /* Vertically align buttons */
-	padding: 2px;                  /* Add spacing around the container */
+	align-items: center; /* Vertically align buttons */
+	padding: 2px; /* Add spacing around the container */
 }
 
 /* General button styling */
 #close-button,
 #refresh-button {
-  appearance: button;
-  background-color: #000000;      /* Primary blue background */
-  border: solid transparent;
-  border-radius: 16px;           /* Rounded corners for a modern look */
-  border-width: 0 0 4px;
-  color: #FFFFFF;                /* White text for contrast */
-  cursor: pointer;
-  font-family: 'Copperplate'; /* Use a clean, readable font */
-  font-size: 10px;
-  font-weight: bold;
-  letter-spacing: .8px;          /* Slight spacing for uppercase text */
-  line-height: 20px;
-  padding: 8px 12px;            /* Comfortable padding */
-  text-transform: uppercase;     /* Make text uppercase */
-  transition: filter .2s, transform .2s ease-in-out;
+	appearance: button;
+	background-color: #000000; /* Primary blue background */
+	border: solid transparent;
+	border-radius: 16px; /* Rounded corners for a modern look */
+	border-width: 0 0 4px;
+	color: #ffffff; /* White text for contrast */
+	cursor: pointer;
+	font-family: 'Copperplate'; /* Use a clean, readable font */
+	font-size: 10px;
+	font-weight: bold;
+	letter-spacing: 0.8px; /* Slight spacing for uppercase text */
+	line-height: 20px;
+	padding: 8px 12px; /* Comfortable padding */
+	text-transform: uppercase; /* Make text uppercase */
+	transition: filter 0.2s, transform 0.2s ease-in-out;
 }
 
 /* Hover effect for buttons */
 #close-button:hover,
 #refresh-button:hover,
 #send-button:hover {
-  filter: brightness(1.1);       /* Slightly brighten on hover */
+	filter: brightness(1.1); /* Slightly brighten on hover */
 }
 
 /* Active (clicked) effect for buttons */
 #close-button:active,
 #refresh-button:active,
 #send-button:active {
-  transform: scale(0.95);        /* Slightly shrink on click for feedback */
+	transform: scale(0.95); /* Slightly shrink on click for feedback */
 }
 
 /* Disabled state (if needed) */
 #close-button:disabled,
 #refresh-button:disabled,
 #send-button:disabled {
-  background-color: #ccc;        /* Grey out when disabled */
-  cursor: not-allowed;
+	background-color: #ccc; /* Grey out when disabled */
+	cursor: not-allowed;
 }
 
 /* Add subtle shadow effect for depth */
 #close-button,
 #refresh-button,
 #send-button {
-  box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+	box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 #close-button:hover,
 #refresh-button:hover,
 #send-button:hover {
-  box-shadow: 0px 6px 8px rgba(0,0,0,0.15);
+	box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.15);
 }
-
 
 #discussion-panel h3 {
 	margin-top: 0;
@@ -254,21 +252,21 @@
 }
 
 #send-button {
-  appearance: button;
-  background-color: #01a717;      /* Primary blue background */
-  border: solid transparent;
-  border-radius: 32px;           /* Rounded corners for a modern look */
-  border-width: 0 0 4px;
-  color: #FFFFFF;                /* White text for contrast */
-  cursor: pointer;
-  font-family: 'Copperplate'; /* Use a clean, readable font */
-  font-size: 10px;
-  font-weight: bold;
-  letter-spacing: .8px;          /* Slight spacing for uppercase text */
-  line-height: 20px;
-  padding: 6px 8px;            /* Comfortable padding */
-  text-transform: uppercase;     /* Make text uppercase */
-  transition: filter .2s, transform .2s ease-in-out;
+	appearance: button;
+	background-color: #01a717; /* Primary blue background */
+	border: solid transparent;
+	border-radius: 32px; /* Rounded corners for a modern look */
+	border-width: 0 0 4px;
+	color: #ffffff; /* White text for contrast */
+	cursor: pointer;
+	font-family: 'Copperplate'; /* Use a clean, readable font */
+	font-size: 10px;
+	font-weight: bold;
+	letter-spacing: 0.8px; /* Slight spacing for uppercase text */
+	line-height: 20px;
+	padding: 6px 8px; /* Comfortable padding */
+	text-transform: uppercase; /* Make text uppercase */
+	transition: filter 0.2s, transform 0.2s ease-in-out;
 }
 
 #send-button:hover {
@@ -306,7 +304,7 @@
 	border-radius: 8px;
 	margin-bottom: 20px;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding-top: 4%;
+	padding-top: 4%;
 }
 
 .info-item {
@@ -326,75 +324,75 @@
 
 .justification,
 .sources {
-    padding: 20px;                   /* More padding for a spacious look */
-    border-radius: 12px;            /* More pronounced rounded corners */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Deeper shadow for a lifted effect */
-    position: relative;              /* For z-index stacking */
-    overflow: hidden;                /* Hide overflow for aesthetic reasons */
-    font-family: 'Georgia';  /* Modern, readable font */
-    letter-spacing: 0.5px;           /* Subtle spacing */
-    line-height: 1.6;                /* Improved readability */
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;  /* Smooth hover effects */
+	padding: 20px; /* More padding for a spacious look */
+	border-radius: 12px; /* More pronounced rounded corners */
+	box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Deeper shadow for a lifted effect */
+	position: relative; /* For z-index stacking */
+	overflow: hidden; /* Hide overflow for aesthetic reasons */
+	font-family: 'Georgia'; /* Modern, readable font */
+	letter-spacing: 0.5px; /* Subtle spacing */
+	line-height: 1.6; /* Improved readability */
+	transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Smooth hover effects */
 }
 
 .justification:hover,
 .sources:hover {
-    transform: translateY(-5px);    /* Lift effect on hover */
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);  /* Enhanced shadow on hover */
+	transform: translateY(-5px); /* Lift effect on hover */
+	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
 
 /* "Justification" styling */
 .justification {
-    background-color: #f3e5f5;       /* Lighter, softer purple */
-    border: 2px dashed #ce93d8;    /* A subtle, hand-drawn feel */
+	background-color: #f3e5f5; /* Lighter, softer purple */
+	border: 2px dashed #ce93d8; /* A subtle, hand-drawn feel */
 }
 
 /* "Sources" styling */
 .sources {
-    background-color: #fffde7;       /* Softer yellow */
-    border: 2px dashed #f0e68c;    /* Dashed border for the "Sources" */
+	background-color: #fffde7; /* Softer yellow */
+	border: 2px dashed #f0e68c; /* Dashed border for the "Sources" */
 }
 
 /* Ribbon effect */
 .justification:before,
 .sources:before {
-    content: '';
-    position: absolute;
-    top: -10px;
-    left: -10px;
-    border-width: 20px;
-    border-style: solid;
-    border-color: #fdd835 #fdd835 transparent transparent; /* Gold ribbon */
-    transform: rotate(-45deg);
-    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.1);
+	content: '';
+	position: absolute;
+	top: -10px;
+	left: -10px;
+	border-width: 20px;
+	border-style: solid;
+	border-color: #fdd835 #fdd835 transparent transparent; /* Gold ribbon */
+	transform: rotate(-45deg);
+	box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Small detail, the ribbon */
 .sources:before {
-    border-color: #80deea #80deea transparent transparent; /* Teal ribbon */
+	border-color: #80deea #80deea transparent transparent; /* Teal ribbon */
 }
 
 /* Header style for better readability */
 .justification h2,
 .sources h2 {
-    font-size: 24px;                /* Larger header */
-    font-weight: 700;               /* Bold for emphasis */
-    color: #333;                    /* Dark color for contrast */
-    margin-bottom: 15px;            /* Spacing below the header */
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Subtle text shadow */
+	font-size: 24px; /* Larger header */
+	font-weight: 700; /* Bold for emphasis */
+	color: #333; /* Dark color for contrast */
+	margin-bottom: 15px; /* Spacing below the header */
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Subtle text shadow */
 }
 
 /* Style for links in sources */
 .sources a {
-    color: #1565c0;              /* Nice blue */
-    text-decoration: none;       /* Remove underlines */
-    font-weight: 500;            /* Semi-bold */
-    transition: color 0.3s;      /* Hover transition */
+	color: #1565c0; /* Nice blue */
+	text-decoration: none; /* Remove underlines */
+	font-weight: 500; /* Semi-bold */
+	transition: color 0.3s; /* Hover transition */
 }
 
 .sources a:hover {
-    color: #e65100;            /* Orange hover */
-    text-decoration: underline; /* Underline on hover */
+	color: #e65100; /* Orange hover */
+	text-decoration: underline; /* Underline on hover */
 }
 
 /* Style for the discussion messages */
@@ -441,18 +439,129 @@
 }
 
 #flag-image-button {
-    position: absolute;
-    z-index: 10000;
-    display: none; /* Initially hidden */
-    cursor: pointer;
-    padding: 5px;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-  }
+	position: absolute;
+	z-index: 10000;
+	display: none; /* Initially hidden */
+	cursor: pointer;
+	padding: 5px;
+	background-color: white;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+}
 
-  .credibility-category {
-    font-size: 18px;
-    font-weight: bold;
-    align-items: center;
-  }
+.credibility-category {
+	font-size: 18px;
+	font-weight: bold;
+	align-items: center;
+}
+
+.credibility-context-menu {
+	position: absolute;
+	background-color: white;
+	border-radius: 8px;
+	box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.15);
+	padding: 12px;
+	min-width: 200px; /* Increased width for a better view */
+	z-index: 1000;
+	font-family: 'Poppins', sans-serif;
+	opacity: 0;
+	transform: scale(0.95);
+	transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.credibility-category {
+	font-size: 14px;
+	font-weight: bold;
+	padding: 8px;
+	border-radius: 6px;
+	text-align: center;
+	margin-bottom: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.context-menu-button {
+	width: 100%;
+	background: #007bff;
+	color: white;
+	border: none;
+	padding: 10px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 14px;
+	transition: background 0.2s;
+}
+
+.context-menu-button:hover {
+	background: #0056b3;
+}
+
+/* Styling the icons next to the "Real" or "Fake" text */
+.credibility-category svg {
+	margin-right: 8px;
+	font-size: 18px;
+}
+
+/* Styling for Real Image */
+.credibility-category.real {
+	background-color: #d4edda; /* Light green */
+	color: #155724; /* Dark green */
+}
+
+/* Styling for Fake Image */
+.credibility-category.fake {
+	background-color: #f8d7da; /* Light red */
+	color: #721c24; /* Dark red */
+}
+
+/* ------------------------------This is for video --------------------------------*/
+.credibility-context-menu {
+	position: absolute;
+	background-color: #fff;
+	border-radius: 8px;
+	box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.15);
+	padding: 12px;
+	min-width: 200px;
+	z-index: 1000;
+	font-family: 'Poppins', sans-serif;
+	opacity: 0;
+	transform: scale(0.95);
+	transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+	display: block;
+}
+
+.credibility-category {
+	font-size: 14px;
+	font-weight: bold;
+	color: #444;
+	margin-bottom: 8px;
+	padding: 8px;
+	background-color: #f8f9fa;
+	border-radius: 6px;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.credibility-category span {
+	margin-left: 8px;
+	font-size: 16px;
+}
+
+.context-menu-button {
+	width: 100%;
+	background: #007bff;
+	color: white;
+	border: none;
+	padding: 10px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 14px;
+	transition: background 0.2s;
+}
+
+.context-menu-button:hover {
+	background: #0056b3;
+}
