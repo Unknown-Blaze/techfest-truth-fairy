@@ -172,7 +172,7 @@ app.post('/addDiscussionMessageToImage', async (req, res) => {
     const flaggedRef = db.collection('flaggedImages');
 
     // Test querying by only the 'text' field first to debug
-    const existingQuery = await flaggedRef.where('imageUrl', '==', text_or_image).get();
+    const existingQuery = await flaggedRef.where('mediaUrl', '==', text_or_image).get();
     console.log("Query by text result:", existingQuery);
 
     // Test querying by only the 'url' field
@@ -247,19 +247,14 @@ app.get('/getDiscussionThreads', async (req, res) => {
 });
 
 app.get('/getDiscussionThreadsImage', async (req, res) => {
-    const { text } = req.query; // Get the text parameter from the request
-    console.log("Querying discussion threads for:", text);
-
+    const { text } = req.query;
+    console.log("Endpoint received text:", text);
     if (!text) {
         return res.status(400).json({ message: "Text parameter is required" });
     }
-
     const flaggedRef = db.collection('flaggedImages');
-
-    // Query the database to find documents where the imageUrl matches the provided Url
-    const querySnapshot = await flaggedRef.where('imageUrl', '==', text).get();
-
-    // Check if any document matches the text
+    const querySnapshot = await flaggedRef.where('mediaUrl', '==', text).get();
+    console.log("Found", querySnapshot.size, "documents with mediaUrl equal to", text);
     if (querySnapshot.empty) {
         return res.status(404).json({ message: "No flagged texts found for the given image" });
     }
@@ -320,90 +315,112 @@ app.post('/store_analysis', async (req, res) => {
 });
 
 app.post('/flagImage', async (req, res) => {
-    const { imageUrl, url, prediction, heatmap_image, userId } = req.body;
-    console.log("Received flagImage request:", imageUrl, url, prediction, userId);
+    // Accept either an imageUrl or a videoUrl
+    const { imageUrl, videoUrl, url, prediction, heatmap_image, userId } = req.body;
+    // Use videoUrl if imageUrl is not provided
+    const mediaUrl = imageUrl || videoUrl;
+    // Determine the type of media (default to "image" if not provided)
+    const mediaType = imageUrl ? "image" : videoUrl ? "video" : null;
 
-    if (!imageUrl || !url || prediction === undefined || !userId) {
+    console.log("[FLAG IMAGE] Request received:");
+    console.log("  mediaUrl:", mediaUrl);
+    console.log("  mediaType:", mediaType);
+    console.log("  website (url):", url);
+    console.log("  prediction:", prediction);
+    console.log("  userId:", userId);
+
+    if (!mediaUrl || !url || prediction === undefined || !userId || !mediaType) {
+        console.error("[FLAG IMAGE] Missing required fields.");
         return res.status(400).json({ message: "Missing required fields" });
     }
 
     try {
         const flaggedRef = db.collection('flaggedImages');
-
-        // Check if the image URL is already flagged
+        console.log("[FLAG IMAGE] Querying for existing media with mediaUrl:", mediaUrl, "and website:", url);
         const existingQuery = await flaggedRef
-            .where('imageUrl', '==', imageUrl)
+            .where('mediaUrl', '==', mediaUrl)
             .where('website', '==', url)
             .get();
 
         if (!existingQuery.empty) {
-            // Update existing flagged image
             let doc = existingQuery.docs[0];
+            console.log("[FLAG IMAGE] Found existing flagged media. Document ID:", doc.id);
             await doc.ref.update({
                 flaggedBy: admin.firestore.FieldValue.arrayUnion(userId),
                 lastUpdated: admin.firestore.Timestamp.now(),
                 prediction,
-                heatmap_image
+                heatmap_image,
+                mediaType
             });
-
-            return res.json({ message: "Updated existing flagged image", flaggedImageId: doc.id });
+            return res.json({ message: "Updated existing flagged media", flaggedImageId: doc.id });
         }
 
-        // Create a new flagged image entry
+        console.log("[FLAG IMAGE] No existing flagged media found. Creating a new entry.");
         const newFlagRef = await flaggedRef.add({
-            imageUrl,
+            mediaUrl,
             website: url,
             flaggedBy: [userId],
-            prediction, // AI analysis result (0 = fake, 1 = real)
-            heatmap_image, // AI-generated heatmap
+            prediction,
+            heatmap_image,
+            mediaType,
             createdAt: admin.firestore.Timestamp.now(),
             lastUpdated: admin.firestore.Timestamp.now(),
         });
-
-        res.json({ message: "Image flagged successfully", flaggedImageId: newFlagRef.id });
+        console.log("[FLAG IMAGE] New flagged media created. Document ID:", newFlagRef.id);
+        res.json({ success: true, message: "Media flagged successfully", flaggedImageId: newFlagRef.id });
     } catch (error) {
-        console.error("Error flagging image:", error);
+        console.error("[FLAG IMAGE] Error flagging media:", error);
+        console.error(error.stack);
         res.status(500).json({ message: "Internal server error" });
     }
 });
+
+
 
 // Add the endpoint to get all flagged images
 // Add the endpoint to get flagged images for a specific page
 app.get('/flaggedImages', async (req, res) => {
     const { website } = req.query; // Get the 'website' query parameter
+    console.log("[GET FLAGGED IMAGES] Request received for website:", website);
 
     if (!website) {
+        console.error("[GET FLAGGED IMAGES] Missing website parameter.");
         return res.status(400).json({ message: "Website URL is required" });
     }
 
     try {
         const flaggedRef = db.collection('flaggedImages');
-
-        // Filter by the 'website' URL
-        console.log("Website:", website);
+        console.log("[GET FLAGGED IMAGES] Querying flaggedImages for website:", website);
         const snapshot = await flaggedRef.where('website', '==', website).get();
 
         if (snapshot.empty) {
-            return res.status(404).json({ message: "No flagged images found for this website" });
+            console.warn("[GET FLAGGED IMAGES] No flagged media found for website:", website);
+            return res.status(404).json({ message: "No flagged media found for this website" });
         }
 
-        const flaggedImages = snapshot.docs.map(doc => ({
-            id: doc.id,
-            imageUrl: doc.data().imageUrl,
-            website: doc.data().website,
-            flaggedBy: doc.data().flaggedBy,
-            prediction: doc.data().prediction,
-            heatmap_image: doc.data().heatmap_image,
-            createdAt: doc.data().createdAt.toDate(),
-            lastUpdated: doc.data().lastUpdated.toDate(),
-        }));
+        const flaggedMedia = snapshot.docs.map(doc => {
+            console.log("[GET FLAGGED IMAGES] Found flagged media. Document ID:", doc.id, "Media Type:", doc.data().mediaType);
+            return {
+                id: doc.id,
+                mediaUrl: doc.data().mediaUrl,
+                website: doc.data().website,
+                flaggedBy: doc.data().flaggedBy,
+                prediction: doc.data().prediction,
+                heatmap_image: doc.data().heatmap_image,
+                mediaType: doc.data().mediaType,
+                createdAt: doc.data().createdAt.toDate(),
+                lastUpdated: doc.data().lastUpdated.toDate(),
+            };
+        });
 
-        res.json(flaggedImages);
+        res.json(flaggedMedia);
     } catch (error) {
-        console.error("Error retrieving flagged images:", error);
+        console.error("[GET FLAGGED IMAGES] Error retrieving flagged media:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
+
+
 
 // app.get('/flaggedImages', async (req, res) => {
 //     try {
