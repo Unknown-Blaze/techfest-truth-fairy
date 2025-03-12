@@ -91,7 +91,7 @@
 	text-align: center;
 	width: 100%; /* Make the header span the full width */
 	display: block; /* Ensures width is respected */
-	font-family: 'Copperplate';
+	font-family: 'Georgia';
 }
 
 #discussion-title,
@@ -103,14 +103,14 @@
 	text-align: center;
 	width: 100%; /* Make the header span the full width */
 	display: block; /* Ensures width is respected */
-	font-family: 'Copperplate';
+	font-family: 'Georgia';
 	font-weight: lighter;
 	font-size: 12px;
 }
 
 /* Style for discussion-descriptions */
 #discussion-description {
-	font-size: 16px; /* Larger font size for impact */
+	font-size: 14px; /* Larger font size for impact */
 	font-family: 'Georgia'; /* Bold and modern font */
 	font-weight: 100; /* Make it extra bold */
 	letter-spacing: 1.2px; /* Increased letter spacing for emphasis */
@@ -151,7 +151,7 @@
 	height: 100%; /* Full height */
 	background-color: #ffffff;
 	border-left: 1px solid #ccc;
-	z-index: 100000; /* Make sure it's on top of everything */
+	z-index: 999; /* Make sure it's on top of everything */
 	overflow-y: auto; /* Allow scrolling if content overflows */
 	display: none; /* Initially hidden */
 	padding: 10px;
@@ -510,8 +510,8 @@
 }
 
 #discussion-title {
-	font-family: 'Copperplate', sans-serif;
-	font-size: 20px;
+	font-family: 'Georgia', serif;
+	font-size: 28px;
 	font-weight: bold;
 	text-align: center;
 	color: #333;
@@ -627,22 +627,23 @@
 }
 
 #panel-resizer {
-	position: absolute;
-	bottom: 10px;
-	right: 10px;
-	width: 20px;
-	height: 20px;
-	background-color: #ccc;
-	cursor: nwse-resize;
-	border-radius: 50%;
+    position: absolute;
+    top: 50%;  /* Center vertically */
+    left: 0;  /* Stick to the *left* edge now */
+    width: 10px; /*Style of resizer*/
+    height: 50px;/*Style of resizer*/
+    background-color: #ccc;
+    cursor: ew-resize; /* Horizontal resize cursor */
+    transform: translateY(-50%); /* Ensure perfect vertical centering */
+    z-index: 1000; /* Ensure it's on top of other elements */
 }
 
 #discussion-title,
 #chat-title,
 #heatmap-title {
 	text-align: center;
-	font-family: 'Copperplate', sans-serif;
-	font-size: 20px;
+	font-family: 'Georgia';
+	/* font-size: 20px; */
 	color: #333;
 	margin: 0;
 }
@@ -652,8 +653,12 @@
 	text-decoration: underline;
 }
 
+#chat-title {
+	font-size: 24px;
+}
+
 #discussion-description {
-	font-size: 16px;
+	font-size: 12px;
 	font-family: 'Georgia', serif;
 	font-weight: 600;
 	letter-spacing: 1.2px;
@@ -662,7 +667,6 @@
 	margin-bottom: 20px;
 	padding: 8px;
 	border-radius: 4px;
-	background-color: #f9f9f9;
 }
 
 #discussion-description:before {
