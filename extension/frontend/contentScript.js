@@ -587,7 +587,7 @@ const fetchFlaggedMedia = async () => {
         console.log("Flagged media for the website:", flaggedMedia);
         flaggedMedia.forEach((mediaData) => {
             if (mediaData.mediaType === 'image') {
-                highlightFlaggedImage(mediaData.prediction, mediaData.mediaUrl, mediaData.heatmap_image);
+                highlightFlaggedImage(mediaData.prediction, mediaData.mediaURL, mediaData.heatmap_image);
             } else if (mediaData.mediaType === 'video') {
                 highlightFlaggedVideo(mediaData.prediction, mediaData.mediaUrl, mediaData.heatmap_image);
             }
@@ -677,43 +677,7 @@ const applyImageHighlight = (prediction, imageElement, imageUrl, heatmap_image) 
     imageElement.style.borderRadius = "5px";
     imageElement.title = prediction;
 
-    const overlay = document.createElement("div");
-    overlay.classList.add("image-overlay");
-    overlay.style.position = "absolute";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.width = "100%";
-    overlay.style.height = "100%";
-    overlay.style.backgroundColor = highlightColor;
-    overlay.style.opacity = "0.3";
-    overlay.style.pointerEvents = "none";
-
-    const label = document.createElement("div");
-    label.textContent = prediction == 1 ? "REAL" : "FAKE";
-    label.style.position = "absolute";
-    label.style.top = "4%";
-    label.style.right = "4%";
-    label.style.backgroundColor = prediction == 1 ? "rgba(34, 139, 34, 0.6)" : "rgba(220, 20, 60, 0.6)";
-    label.style.color = "white";
-    label.style.fontWeight = "bold";
-    label.style.padding = "2px 2px";
-    label.style.borderRadius = "8px";
-    label.style.zIndex = "10";
-    label.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
-    label.style.fontFamily = "Poppins";
-
-    const imageWidth = imageElement.width;
-    label.style.fontSize = `${Math.max(imageWidth * 0.04, 6)}px`;
-
-    const wrapper = document.createElement("div");
-    wrapper.style.position = "relative";
-    wrapper.style.display = "inline-block";
-    wrapper.appendChild(imageElement.cloneNode(true));
-    wrapper.appendChild(overlay);
-    wrapper.appendChild(label);
-
-    addImageContextMenu(wrapper, prediction, imageUrl, heatmap_image);
-    imageElement.replaceWith(wrapper);
+    addImageContextMenu(imageElement.parentElement, prediction, imageUrl, heatmap_image);
 };
 
 const addContextMenu = (span, justification, sources, text, category) => {
@@ -736,7 +700,6 @@ const addContextMenu = (span, justification, sources, text, category) => {
         const categoryValue = document.createElement('div');
         categoryValue.classList.add('credibility-category');
         categoryValue.textContent = `This text is ${category}`;
-        categoryValue.classList.add('context-menu-item');
         contextMenu.appendChild(categoryValue);
 
         const reasonDisplay = document.createElement('div');
@@ -895,15 +858,19 @@ const fetchAnnotations = async (url) => {
 
 const applyExistingHighlights = (annotations) => {
     annotations.forEach(annotation => {
-        const textNodes = findTextNodes(document.body, annotation.text);
-        console.log("TextNodes found:", textNodes);
+        try {
+            const textNodes = findTextNodes(document.body, annotation.text);
+            console.log("TextNodes found:", textNodes);
 
-        textNodes.forEach(node => {
-            console.log("Before Highlight:", node.textContent);
-            console.log("*******************************", annotation.AI_verification);
-            highlightTextNode(node, annotation.text, annotation.AI_verification.score, annotation.justification, annotation.sources, annotation.text, annotation.AI_verification.category);
-            console.log("After Highlight:", node.parentNode.innerHTML);
-        });
+            textNodes.forEach(node => {
+                console.log("Before Highlight:", node.textContent);
+                console.log("*******************************", annotation.AI_verification);
+                highlightTextNode(node, annotation.text, annotation.AI_verification.score, annotation.justification, annotation.sources, annotation.text, annotation.AI_verification.category);
+                // console.log("After Highlight:", node.parentNode.innerHTML);
+            });
+        } catch (error) {
+            console.error("Error in processing annotation:", annotation, error);
+        }
     });
 };
 
