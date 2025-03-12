@@ -1269,12 +1269,26 @@ const displayDiscussionThread = (discussionThread, discussionContainer) => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message');
 
-        const userId = messageObj.userId || 'Unknown User';
+        let userId = messageObj.userId || 'Unknown User';
         const message = messageObj.message || 'No message content';
+
+        userId = userId === chrome.runtime.id ? 'You' : userId;
+
+        if (userId === 'ejjjimhfldejgofhjjgfpkhphlfjjokg') {
+            userId = 'unknown_rudra'
+        }else if (userId === 'oekefgamihofmlabmopoamhdjbekhejk') {
+            userId = 'esvar2004'
+        }else if (userId === 'amapagdohinlpjibdfbpfgigkogeklcd') {
+            userId = 'teja02'
+        }
 
         const userElement = document.createElement('div');
         userElement.classList.add('user');
-        userElement.textContent = `User: ${userId}`;
+        if (userId === 'You') {
+            userElement.textContent = `You:`;
+        }else{
+            userElement.textContent = `User: ${userId}`;
+        }
 
         const messageText = document.createElement('div');
         messageText.classList.add('message-text');
@@ -1332,12 +1346,26 @@ function appendMessage(messageObj, container) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
 
-    const userId = messageObj.userId || 'Unknown User';
+    let userId = messageObj.userId || 'Unknown User';
     const message = messageObj.message || 'No message content';
+
+    userId = userId === chrome.runtime.id ? 'You' : userId;
+
+    if (userId === 'ejjjimhfldejgofhjjgfpkhphlfjjokg') {
+        userId = 'unknown_rudra'
+    }else if (userId === 'oekefgamihofmlabmopoamhdjbekhejk') {
+        userId = 'esvar2004'
+    }else if (userId === 'amapagdohinlpjibdfbpfgigkogeklcd') {
+        userId = 'teja02'
+    }
 
     const userElement = document.createElement('div');
     userElement.classList.add('user');
-    userElement.textContent = `User: ${userId}`;
+    if (userId === 'You') {
+        userElement.textContent = `You:`;
+    }else{
+        userElement.textContent = `User: ${userId}`;
+    }
 
     const messageText = document.createElement('div');
     messageText.classList.add('message-text');
