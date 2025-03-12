@@ -7,7 +7,7 @@ const API_BASE_URL = "http://localhost:3000"; // YOUR ACTUAL BACKEND URL
 let discussionPanel = null;
 
 window.addEventListener('load', () => {
-    fetchFlaggedImages(); // Fetch flagged images and apply highlight
+    fetchFlaggedMedia(); // Fetch flagged images and apply highlight
 });
 
 // Function to create and show the "flag" button (modified for media)
@@ -319,213 +319,180 @@ const handleImageFlag = async (imageElement) => {
 
 // Handle video flag (similar to image flag but for videos)
 const handleVideoFlag = async (videoElement) => {
-    console.log("videoElement: ", videoElement);
-    console.log("handle video flag");
+    console.log("[HANDLE VIDEO FLAG] Video element:", videoElement);
+    console.log("[HANDLE VIDEO FLAG] Video source URL:", videoElement.src);
     hideFlagButton();
     showProcessingButton();
 
     try {
-        // Step 1: Send video URL to AI for analysis
-        console.log("Processing video with AI model...");
-
+        console.log("[HANDLE VIDEO FLAG] Sending video URL to AI model:", videoElement.src);
         const aiResponse = await fetch(IMAGE_API_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                imageUrl: videoElement.src, // Using video src
+                imageUrl: videoElement.src, // Notice using imageUrl key for both images and videos
                 url: window.location.href,
             }),
         });
 
         const aiData = await aiResponse.json();
-        console.log("AI Model Response for video:", aiData);
+        console.log("[HANDLE VIDEO FLAG] AI Model Response for video:", aiData);
 
         if (!aiData || aiData.error) {
-            console.error("Error from AI model:", aiData?.error || "No response");
+            console.error("[HANDLE VIDEO FLAG] Error from AI model:", aiData?.error || "No response");
             return;
         }
 
-        // Step 2: Store video analysis in the database
+        console.log("[HANDLE VIDEO FLAG] Storing video analysis in the database for video URL:", videoElement.src);
         const storeResponse = await fetch(BACKEND_API_URL2, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                imageUrl: videoElement.src,
+                videoUrl: videoElement.src,
                 url: window.location.href,
-                prediction: aiData.prediction, // 0 = fake, 1 = real
-                heatmap_image: aiData.heatmap_image, // If your server still returns a single frame heatmap
+                prediction: aiData.prediction,
+                heatmap_image: aiData.heatmap_image,
                 userId: chrome.runtime.id,
             }),
         });
 
         const storeResult = await storeResponse.json();
-        console.log("Stored video data in database:", storeResult);
+        console.log("[HANDLE VIDEO FLAG] Stored video data in database:", storeResult);
 
         if (!storeResult.success) {
-            console.error("Error storing video data:", storeResult.message);
+            console.error("[HANDLE VIDEO FLAG] Error storing video data:", storeResult.message);
         } else {
-            console.log("Video data stored successfully:", storeResult);
+            console.log("[HANDLE VIDEO FLAG] Video data stored successfully.");
         }
 
-        // Step 3: Highlight video based on AI prediction (border, label, etc.)
+        // Highlight video based on AI prediction
+        console.log("[HANDLE VIDEO FLAG] Highlighting video based on prediction:", aiData.prediction);
         applyVideoHighlight(aiData.prediction, videoElement, videoElement.src, aiData.heatmap_image);
-
-        // Step 4: If your server returns the processed video as base64, call showVideoDiscussionPanel
-        if (aiData.heatmap_video) {
-            console.log("Calling showVideoDiscussionPanel with the base64 processed video...");
-            showVideoDiscussionPanel(videoElement.src, aiData.heatmap_video);
-        }
-
     } catch (error) {
-        console.error("Error during video processing:", error);
+        console.error("[HANDLE VIDEO FLAG] Error during video processing:", error);
     }
-
     hideProcessingButton();
 };
 
+
 // Apply highlight for videos
+// Apply highlight for videos – updated to mimic image UI
 const applyVideoHighlight = (prediction, videoElement, videoUrl, heatmap_image) => {
     console.log("Apply video highlight with: ", videoUrl);
     if (!videoElement) return;
-
+  
     // Calculate HSL color based on prediction
     const hue = (prediction == 1 ? 100 : 0);
     const saturation = 100;
     const lightness = 75;
     const highlightColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-
+  
     // Apply a border to the video element
     videoElement.style.border = `4px solid ${highlightColor}`;
     videoElement.style.borderRadius = "5px";
     videoElement.title = prediction;
-
+  
     // Wrap the video element to add an overlay label
     const wrapper = document.createElement("div");
     wrapper.style.position = "relative";
     wrapper.style.display = "inline-block";
     // Clone the video element into the wrapper
     wrapper.appendChild(videoElement.cloneNode(true));
-
-    // Create overlay label
+  
+    // Create overlay label styled like the image version
     const overlay = document.createElement("div");
-    overlay.textContent = prediction == 1 ? "REAL" : "FAKE";
+    // Use same text and styling as the image overlay
+    if (prediction == 1 || prediction === "Real") {
+      overlay.innerHTML = `✔️ This video is Real`;
+      overlay.style.backgroundColor = "#d4edda"; // green background
+      overlay.style.color = "#155724"; // dark green text
+    } else {
+      overlay.innerHTML = `❌ This video is Fake`;
+      overlay.style.backgroundColor = "#f8d7da"; // red background
+      overlay.style.color = "#721c24"; // dark red text
+    }
     overlay.style.position = "absolute";
     overlay.style.top = "4%";
     overlay.style.right = "4%";
-    overlay.style.backgroundColor = prediction == 1 ? "rgba(34, 139, 34, 0.6)" : "rgba(220, 20, 60, 0.6)";
-    overlay.style.color = "white";
     overlay.style.fontWeight = "bold";
     overlay.style.padding = "2px 2px";
     overlay.style.borderRadius = "8px";
     overlay.style.zIndex = "10";
     overlay.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
     overlay.style.fontFamily = "Poppins";
-
+  
     wrapper.appendChild(overlay);
-    // Attach a context menu for videos
+  
+    // Attach a context menu for videos (updated below)
     addVideoContextMenu(wrapper, prediction, videoUrl, heatmap_image);
+  
     // Replace the original video element with the wrapper
     videoElement.replaceWith(wrapper);
-};
-
-// Add a context menu for flagged videos
-// const addVideoContextMenu = (container, prediction, videoUrl, heatmap_image) => {
-//     container.addEventListener('contextmenu', (event) => {
-//         event.stopImmediatePropagation();
-//         event.preventDefault();
-
-//         let existingContextMenu = document.getElementById('credibility-video-context-menu');
-//         if (existingContextMenu) {
-//             existingContextMenu.remove();
-//         }
-
-//         let contextMenu = document.createElement('div');
-//         contextMenu.id = 'credibility-video-context-menu';
-//         contextMenu.classList.add('credibility-context-menu');
-
-//         const credibilityDisplay = document.createElement('div');
-//         credibilityDisplay.classList.add('credibility-category');
-//         const predText = (prediction == 1 || prediction === "Real") ? "Real" : "Fake";
-//         credibilityDisplay.textContent = `This video is ${predText}`;
-//         credibilityDisplay.classList.add('context-menu-item');
-//         contextMenu.appendChild(credibilityDisplay);
-
-//         const discussOption = document.createElement('button');
-//         discussOption.textContent = 'Discuss';
-//         discussOption.classList.add('context-menu-button');
-//         discussOption.addEventListener('click', () => {
-//             showImageDiscussionPanel(videoUrl, heatmap_image);
-//             contextMenu.remove();
-//         });
-//         contextMenu.appendChild(discussOption);
-
-//         document.body.appendChild(contextMenu);
-//         contextMenu.style.left = `${event.pageX}px`;
-//         contextMenu.style.top = `${event.pageY}px`;
-//         contextMenu.style.display = 'block';
-//     });
-
-//     document.addEventListener('click', (e) => {
-//         if (!e.target.closest('.credibility-video-context-menu')) {
-//             let contextMenu = document.getElementById('credibility-video-context-menu');
-//             if (contextMenu) contextMenu.remove();
-//         }
-//     });
-// };
-const addVideoContextMenu = (container, prediction, videoUrl, heatmap_image) => {
+  };
+  
+  // Updated video context menu to use same UI as images
+  const addVideoContextMenu = (container, prediction, videoUrl, heatmap_image) => {
     container.addEventListener('contextmenu', (event) => {
-        event.stopImmediatePropagation();
-        event.preventDefault();
-
-        let existingContextMenu = document.getElementById('credibility-video-context-menu');
-        if (existingContextMenu) {
-            existingContextMenu.remove();
-        }
-
-        let contextMenu = document.createElement('div');
-        contextMenu.id = 'credibility-video-context-menu';
-        contextMenu.classList.add('credibility-context-menu');
-
-        // Rephrased credibility message with icons
-        const credibilityDisplay = document.createElement('div');
-        credibilityDisplay.classList.add('credibility-category');
-        const predText = (prediction == 1 || prediction === "Real")
-            ? "Verified: This video is real."
-            : "Warning: This video may be altered or manipulated.";
-        const icon = (prediction == 1 || prediction === "Real")
-            ? "✔️"
-            : "⚠️";
-        credibilityDisplay.textContent = `${icon} ${predText}`;
-        credibilityDisplay.classList.add('context-menu-item');
-        contextMenu.appendChild(credibilityDisplay);
-
-        // Discuss button with an icon
-        const discussOption = document.createElement('button');
-        discussOption.innerHTML = '💬 Discuss';
-        discussOption.classList.add('context-menu-button');
-        discussOption.addEventListener('click', () => {
-            showImageDiscussionPanel(videoUrl, heatmap_image);
-            contextMenu.remove();
-        });
-        contextMenu.appendChild(discussOption);
-
-        document.body.appendChild(contextMenu);
-        contextMenu.style.left = `${event.pageX}px`;
-        contextMenu.style.top = `${event.pageY}px`;
-        contextMenu.style.display = 'block';
+      event.stopImmediatePropagation();
+      event.preventDefault();
+  
+      // Remove any existing video context menu
+      let existingContextMenu = document.getElementById('credibility-video-context-menu');
+      if (existingContextMenu) {
+        existingContextMenu.remove();
+      }
+  
+      let contextMenu = document.createElement('div');
+      contextMenu.id = 'credibility-video-context-menu';
+      // Add both generic and specific class for identification
+      contextMenu.classList.add('credibility-context-menu', 'credibility-video-context-menu');
+  
+      // Create a credibility display element with the same style as images
+      const credibilityDisplay = document.createElement('div');
+      credibilityDisplay.classList.add('credibility-category');
+      // Determine if the video is Real or Fake based on prediction
+      const credibilityText = (prediction == "1" || prediction == 1 || prediction === "Real") ? "Real" : "Fake";
+      if (credibilityText === "Real") {
+        credibilityDisplay.innerHTML = `✔️ This video is ${credibilityText}`;
+        credibilityDisplay.style.backgroundColor = "#d4edda"; // Green background
+        credibilityDisplay.style.color = "#155724"; // Dark green text
+      } else {
+        credibilityDisplay.innerHTML = `❌ This video is ${credibilityText}`;
+        credibilityDisplay.style.backgroundColor = "#f8d7da"; // Red background
+        credibilityDisplay.style.color = "#721c24"; // Dark red text
+      }
+      credibilityDisplay.classList.add('context-menu-item');
+      contextMenu.appendChild(credibilityDisplay);
+  
+      // Discuss button – when clicked, open the discussion panel (video version uses same panel as image)
+      const discussOption = document.createElement('button');
+      discussOption.innerHTML = '💬 Discuss';
+      discussOption.classList.add('context-menu-button');
+      discussOption.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showVideoDiscussionPanel(videoUrl, heatmap_image);
+        contextMenu.remove();
+      });
+      contextMenu.appendChild(discussOption);
+  
+      document.body.appendChild(contextMenu);
+      contextMenu.style.left = `${event.pageX}px`;
+      contextMenu.style.top = `${event.pageY}px`;
+      contextMenu.style.display = 'block';
     });
-
+  
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.credibility-video-context-menu')) {
-            let contextMenu = document.getElementById('credibility-video-context-menu');
-            if (contextMenu) contextMenu.remove();
-        }
+      if (!e.target.closest('.credibility-video-context-menu')) {
+        let contextMenu = document.getElementById('credibility-video-context-menu');
+        if (contextMenu) contextMenu.remove();
+      }
     });
-};
+  };
+  
 
 
 // ===== End of Video Flagging Functions =====
@@ -608,26 +575,43 @@ const handleUnflagClick = (event) => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    fetchFlaggedImages(); // Fetch flagged images and apply highlight
+    fetchFlaggedMedia(); // Fetch flagged images and apply highlight
 });
 
 // Fetch flagged images from the backend
-const fetchFlaggedImages = async () => {
-    website = window.location.href;
+const fetchFlaggedMedia = async () => {
+    const website = window.location.href;
     try {
-        // Include the website URL as a query parameter in the request
         const response = await fetch(`http://localhost:3000/flaggedImages?website=${encodeURIComponent(website)}`);
-        const flaggedImages = await response.json();
-        console.log("Flagged images for the website:", flaggedImages);
-
-        flaggedImages.forEach((imageData) => {
-            highlightFlaggedImage(imageData.prediction, imageData.imageUrl, imageData.heatmap_image);
+        const flaggedMedia = await response.json();
+        console.log("Flagged media for the website:", flaggedMedia);
+        flaggedMedia.forEach((mediaData) => {
+            if (mediaData.mediaType === 'image') {
+                highlightFlaggedImage(mediaData.prediction, mediaData.mediaUrl, mediaData.heatmap_image);
+            } else if (mediaData.mediaType === 'video') {
+                highlightFlaggedVideo(mediaData.prediction, mediaData.mediaUrl, mediaData.heatmap_image);
+            }
         });
     } catch (error) {
-        console.error("Error fetching flagged images:", error);
+        console.error("Error fetching flagged media:", error);
     }
 };
 
+const highlightFlaggedVideo = (videoPrediction, videoUrl, heatmap_image) => {
+    const videos = document.querySelectorAll("video");
+    videos.forEach((video) => {
+        try {
+            const normalizedVideoSrc = new URL(video.src).href;
+            const normalizedFlaggedUrl = new URL(videoUrl).href;
+            if (normalizedVideoSrc === normalizedFlaggedUrl) {
+                console.log(`Highlighting video: ${normalizedVideoSrc}`);
+                applyVideoHighlight(videoPrediction, video, normalizedVideoSrc, heatmap_image);
+            }
+        } catch (error) {
+            console.error("Error normalizing video URLs:", error);
+        }
+    });
+};
 
 // Highlight flagged image based on URL
 const highlightFlaggedImage = (imagePrediction, imageUrl, heatmap_image) => {
@@ -783,56 +767,6 @@ const addContextMenu = (span, justification, sources, text, category) => {
     });
 };
 
-// const addImageContextMenu = (span, prediction, imageUrl, heatmap_image) => {
-//     span.addEventListener('contextmenu', (event) => {
-//         console.log("add image context menu: ", heatmap_image);
-//         event.stopImmediatePropagation();
-//         event.preventDefault();
-
-//         let existingContextMenu = document.getElementById('credibility-image-context-menu');
-//         if (existingContextMenu) {
-//             existingContextMenu.remove();
-//         }
-
-//         let contextMenu = document.createElement('div');
-//         contextMenu.id = 'credibility-image-context-menu';
-//         contextMenu.classList.add('credibility-context-menu');
-
-//         console.log("Prediction: ", prediction);
-//         if (prediction === "1" || prediction === 1 || prediction === "Real") {
-//             prediction = "Real";
-//         }
-//         else {
-//             prediction = "Fake";
-//         }
-//         const credibilityScore = prediction;
-//         const credibilityDisplay = document.createElement('div');
-//         credibilityDisplay.classList.add('credibility-category');
-//         credibilityDisplay.textContent = `This image is ${credibilityScore}`;
-//         credibilityDisplay.classList.add('context-menu-item');
-//         contextMenu.appendChild(credibilityDisplay);
-
-//         const discussOption = document.createElement('button');
-//         discussOption.textContent = 'Discuss';
-//         discussOption.classList.add('context-menu-button');
-//         discussOption.addEventListener('click', () => {
-//             showImageDiscussionPanel(imageUrl, heatmap_image);
-//             hideImageContextMenu();
-//         });
-//         contextMenu.appendChild(discussOption);
-
-//         document.body.appendChild(contextMenu);
-//         contextMenu.style.left = `${event.pageX}px`;
-//         contextMenu.style.top = `${event.pageY}px`;
-//         contextMenu.style.display = 'block';
-//     });
-
-//     document.addEventListener('click', (e) => {
-//         if (!e.target.closest('.credibility-image-context-menu')) {
-//             hideImageContextMenu();
-//         }
-//     });
-// };
 const addImageContextMenu = (span, prediction, imageUrl, heatmap_image) => {
     span.addEventListener('contextmenu', (event) => {
         console.log("add image context menu: ", heatmap_image);
@@ -1285,6 +1219,129 @@ const showImageDiscussionPanel = async (imageUrl, heatmap_image) => {
     discussionPanel.style.display = 'block';
 };
 
+// New Video Discussion Panel function with separate ID
+// New Video Discussion Panel function with a unique container ID
+const showVideoDiscussionPanel = async (videoUrl, heatmapVideo) => {
+    // Remove any existing discussion panel (if you want one global panel for both types)
+    let discussionPanel = document.getElementById('discussion-panel');
+    if (discussionPanel) {
+      discussionPanel.remove();
+    }
+  
+    // Create a new discussion panel (with the same UI as for images)
+    discussionPanel = document.createElement('div');
+    discussionPanel.id = 'discussion-panel';
+    discussionPanel.classList.add('discussion-panel');
+  
+    // Header section with close button
+    const header = document.createElement('div');
+    header.id = 'discussion-header';
+    header.classList.add('discussion-header');
+    discussionPanel.appendChild(header);
+  
+    const closeButton = document.createElement('button');
+    closeButton.id = 'close-button';
+    closeButton.textContent = '×';
+    closeButton.classList.add('close-button');
+    closeButton.addEventListener('click', () => {
+      discussionPanel.style.display = 'none';
+    });
+    header.appendChild(closeButton);
+  
+    // Title for the panel
+    const discussionTitle = document.createElement('h1');
+    discussionTitle.id = 'discussion-title';
+    discussionTitle.textContent = `Video Analysis Summary`;
+    discussionPanel.appendChild(discussionTitle);
+  
+    // Original video element
+    const originalVideo = document.createElement('video');
+    originalVideo.id = 'original-video';
+    originalVideo.src = videoUrl;
+    originalVideo.controls = true;
+    originalVideo.classList.add('original-video');
+    discussionPanel.appendChild(originalVideo);
+  
+    // Info container for the processed (heatmap) video
+    const infoContainer = document.createElement('div');
+    infoContainer.classList.add('discussion-info-container');
+    discussionPanel.appendChild(infoContainer);
+  
+    const heatmapTitle = document.createElement('h3');
+    heatmapTitle.id = 'heatmap-title';
+    heatmapTitle.textContent = `Model's Heatmap`;
+    infoContainer.appendChild(heatmapTitle);
+  
+    const heatmapExplanation = document.createElement('p');
+    heatmapExplanation.id = 'heatmap-explanation';
+    heatmapExplanation.textContent =
+      "The following video shows the processed output with heatmap overlays highlighting key regions.";
+    infoContainer.appendChild(heatmapExplanation);
+  
+    // Processed video (heatmap) element
+    const heatmapVideoElem = document.createElement('video');
+    heatmapVideoElem.id = 'heatmap-video';
+    heatmapVideoElem.src = "data:video/mp4;base64," + heatmapVideo;
+    heatmapVideoElem.controls = true;
+    heatmapVideoElem.classList.add('heatmap-video');
+    infoContainer.appendChild(heatmapVideoElem);
+  
+    // Chat section (same as for images)
+    const chatTitle = document.createElement('h2');
+    chatTitle.id = 'chat-title';
+    chatTitle.textContent = `Discussion`;
+    discussionPanel.appendChild(chatTitle);
+  
+    const discussionContainer = document.createElement('div');
+    discussionContainer.id = 'discussion-container';
+    discussionPanel.appendChild(discussionContainer);
+  
+    const inputMessage = document.createElement('textarea');
+    inputMessage.id = 'discussion-input';
+    inputMessage.placeholder = 'Share your thoughts...';
+    inputMessage.classList.add('discussion-input');
+    discussionPanel.appendChild(inputMessage);
+  
+    const bottomHeader = document.createElement('div');
+    bottomHeader.id = 'bottom-header';
+    bottomHeader.classList.add('bottom-header');
+    discussionPanel.appendChild(bottomHeader);
+  
+    const sendButton = document.createElement('button');
+    sendButton.id = 'send-button';
+    sendButton.textContent = 'Send';
+    sendButton.classList.add('send-button');
+    sendButton.addEventListener('click', async () => {
+      const url = window.location.href;
+      await sendMessage(videoUrl, inputMessage.value, discussionContainer, url);
+    });
+    bottomHeader.appendChild(sendButton);
+  
+    const refreshButton = document.createElement('button');
+    refreshButton.id = 'refresh-button';
+    refreshButton.textContent = 'Refresh';
+    refreshButton.classList.add('refresh-button');
+    refreshButton.addEventListener('click', async () => {
+      if (discussionContainer) {
+        discussionContainer.innerHTML = '';
+      }
+      await fetchAndDisplayDiscussion(videoUrl, discussionContainer);
+    });
+    bottomHeader.appendChild(refreshButton);
+  
+    // Optionally add a resizer for the panel
+    const resizer = document.createElement('div');
+    resizer.id = 'panel-resizer';
+    discussionPanel.appendChild(resizer);
+    resizer.addEventListener('mousedown', initResize, false);
+  
+    // Append the panel to the document and display it
+    document.body.appendChild(discussionPanel);
+    await fetchAndDisplayDiscussion(videoUrl, discussionContainer);
+    discussionPanel.style.display = 'block';
+  };
+  
+
 
 const showDiscussionPanel = async (text, justification, sources) => {
     discussionPanel = document.getElementById('discussion-panel');
@@ -1620,80 +1677,80 @@ function appendMessage(messageObj, container) {
 }
 
 //Remove this later if not work
-function showVideoDiscussionPanel(videoUrl, base64Video) {
-    // Remove any existing panel
-    let discussionPanel = document.getElementById('discussion-panel');
-    if (discussionPanel) {
-        discussionPanel.remove();
-    }
+// function showVideoDiscussionPanel(videoUrl, base64Video) {
+//     // Remove any existing panel
+//     let discussionPanel = document.getElementById('discussion-panel');
+//     if (discussionPanel) {
+//         discussionPanel.remove();
+//     }
 
-    // Create a new panel
-    discussionPanel = document.createElement('div');
-    discussionPanel.id = 'discussion-panel';
-    discussionPanel.classList.add('discussion-panel');
+//     // Create a new panel
+//     discussionPanel = document.createElement('div');
+//     discussionPanel.id = 'discussion-panel';
+//     discussionPanel.classList.add('discussion-panel');
 
-    // Header
-    const header = document.createElement('div');
-    header.id = 'discussion-header';
-    header.classList.add('discussion-header');
-    discussionPanel.appendChild(header);
+//     // Header
+//     const header = document.createElement('div');
+//     header.id = 'discussion-header';
+//     header.classList.add('discussion-header');
+//     discussionPanel.appendChild(header);
 
-    // Close button
-    const closeButton = document.createElement('button');
-    closeButton.id = 'close-button';
-    closeButton.textContent = 'Close';
-    closeButton.addEventListener('click', () => {
-        discussionPanel.style.display = 'none';
-    });
-    header.appendChild(closeButton);
+//     // Close button
+//     const closeButton = document.createElement('button');
+//     closeButton.id = 'close-button';
+//     closeButton.textContent = 'Close';
+//     closeButton.addEventListener('click', () => {
+//         discussionPanel.style.display = 'none';
+//     });
+//     header.appendChild(closeButton);
 
-    // Title
-    const discussion_title = document.createElement('h1');
-    discussion_title.id = 'discussion-title';
-    discussion_title.textContent = `Summary`;
-    discussionPanel.appendChild(discussion_title);
+//     // Title
+//     const discussion_title = document.createElement('h1');
+//     discussion_title.id = 'discussion-title';
+//     discussion_title.textContent = `Summary`;
+//     discussionPanel.appendChild(discussion_title);
 
-    // Original video URL (optional)
-    const infoContainer = document.createElement('div');
-    infoContainer.classList.add('discussion-info-container');
-    discussionPanel.appendChild(infoContainer);
+//     // Original video URL (optional)
+//     const infoContainer = document.createElement('div');
+//     infoContainer.classList.add('discussion-info-container');
+//     discussionPanel.appendChild(infoContainer);
 
-    const originalTitle = document.createElement('h3');
-    originalTitle.textContent = "Original Video";
-    infoContainer.appendChild(originalTitle);
+//     const originalTitle = document.createElement('h3');
+//     originalTitle.textContent = "Original Video";
+//     infoContainer.appendChild(originalTitle);
 
-    // Show a link to the original video
-    const link = document.createElement('a');
-    link.href = videoUrl;
-    link.textContent = videoUrl;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    infoContainer.appendChild(link);
+//     // Show a link to the original video
+//     const link = document.createElement('a');
+//     link.href = videoUrl;
+//     link.textContent = videoUrl;
+//     link.target = "_blank";
+//     link.rel = "noopener noreferrer";
+//     infoContainer.appendChild(link);
 
-    // Heatmap title
-    const heatmapTitle = document.createElement('h3');
-    heatmapTitle.textContent = "Heatmap (Processed Video)";
-    infoContainer.appendChild(heatmapTitle);
+//     // Heatmap title
+//     const heatmapTitle = document.createElement('h3');
+//     heatmapTitle.textContent = "Heatmap (Processed Video)";
+//     infoContainer.appendChild(heatmapTitle);
 
-    // Explanation
-    const heatmapExplanation = document.createElement('p');
-    heatmapExplanation.textContent = "Below is the processed video with Grad-CAM overlays showing the salient regions.";
-    infoContainer.appendChild(heatmapExplanation);
+//     // Explanation
+//     const heatmapExplanation = document.createElement('p');
+//     heatmapExplanation.textContent = "Below is the processed video with Grad-CAM overlays showing the salient regions.";
+//     infoContainer.appendChild(heatmapExplanation);
 
-    // Create a <video> element for the processed video
-    const videoElement = document.createElement('video');
-    videoElement.id = 'heatmap-video';
-    videoElement.controls = true;
-    videoElement.style.maxWidth = '400px';
-    videoElement.style.maxHeight = '300px';
+//     // Create a <video> element for the processed video
+//     const videoElement = document.createElement('video');
+//     videoElement.id = 'heatmap-video';
+//     videoElement.controls = true;
+//     videoElement.style.maxWidth = '400px';
+//     videoElement.style.maxHeight = '300px';
 
-    videoElement.src = "data:video/mp4;base64," + base64Video;
+//     videoElement.src = "data:video/mp4;base64," + base64Video;
 
-    infoContainer.appendChild(videoElement);
+//     infoContainer.appendChild(videoElement);
 
-    document.body.appendChild(discussionPanel);
-    discussionPanel.style.display = 'block';
-}
+//     document.body.appendChild(discussionPanel);
+//     discussionPanel.style.display = 'block';
+// }
 
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
