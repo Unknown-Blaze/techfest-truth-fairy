@@ -1343,8 +1343,8 @@ const showVideoDiscussionPanel = async (videoUrl, heatmapVideo) => {
   
 
 
-const showDiscussionPanel = async (text, justification, sources) => {
-    discussionPanel = document.getElementById('discussion-panel');
+  const showDiscussionPanel = async (text, justification, sources) => {
+    let discussionPanel = document.getElementById('discussion-panel');
     if (discussionPanel) {
         discussionPanel.remove();
     }
@@ -1360,7 +1360,7 @@ const showDiscussionPanel = async (text, justification, sources) => {
 
     const closeButton = document.createElement('button');
     closeButton.id = 'close-button';
-    closeButton.textContent = 'Close';
+    closeButton.textContent = '×';
     closeButton.addEventListener('click', () => {
         discussionPanel.style.display = 'none';
     });
@@ -1514,33 +1514,42 @@ const fetchAndDisplayDiscussion = async (text_or_image, discussionContainer) => 
         discussionContainer.innerHTML = '<div>Error loading discussions.</div>';
     }
 };
-
 let isResizing = false;
+let startX;
+let startWidth;
 
 function initResize(e) {
     e.preventDefault();
     isResizing = true;
+    startX = e.clientX; // Initial mouse X position
+
+    const discussionPanel = document.getElementById('discussion-panel');
+      startWidth = parseInt(document.defaultView.getComputedStyle(discussionPanel).width, 10);
+
     document.addEventListener('mousemove', resizePanel);
     document.addEventListener('mouseup', stopResize);
-    document.body.style.userSelect = 'none';
-    document.body.style.webkitUserSelect = 'none';
-    document.body.style.msUserSelect = 'none';
+    document.body.style.userSelect = 'none'; // Prevent text selection
 }
 
 function resizePanel(e) {
     if (!isResizing) return;
-    const newWidth = window.innerWidth - e.clientX;
-    discussionPanel.style.width = `${newWidth}px`;
+    
+    const discussionPanel = document.getElementById('discussion-panel');
+    if (discussionPanel) {
+        const dx = startX - e.clientX; // Calculate distance mouse has moved
+        const newWidth = startWidth + dx; // Calculate new width
+        discussionPanel.style.width = `${newWidth}px`;
+    }
+
 }
 
 function stopResize() {
     isResizing = false;
     document.removeEventListener('mousemove', resizePanel);
     document.removeEventListener('mouseup', stopResize);
-    document.body.style.userSelect = '';
-    document.body.style.webkitUserSelect = '';
-    document.body.style.msUserSelect = '';
+    document.body.style.userSelect = ''; // Re-enable text selection
 }
+
 
 const displayDiscussionThread = (discussionThread, discussionContainer) => {
     console.log("Received discussion thread:", discussionThread);
