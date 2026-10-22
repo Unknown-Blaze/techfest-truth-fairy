@@ -1,5 +1,12 @@
-
 # Meet **Truth Fairy** 🧚 – Your Chrome Extension Ally Against Misinformation
+
+Chrome extension that fact-checks highlighted text and flags manipulated images with a deepfake detector explained by Grad-CAM; Top 5 at NTU TechFest.
+
+[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)](https://developer.mozilla.org/docs/Web/JavaScript)
+[![Chrome extension](https://img.shields.io/badge/Chrome-extension-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions)
+[![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Flask](https://img.shields.io/badge/Flask-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Top 5](https://img.shields.io/badge/Top%205%20%C2%B7%20NTU%20TechFest-Truth%20Fairy-FFB000?style=flat-square)](#)
 
 Truth Fairy empowers you to spot misinformation as you browse. Whether it’s a suspicious text snippet or a manipulated image, our extension brings the truth to light—fast and fun!
 
@@ -10,7 +17,6 @@ Truth Fairy empowers you to spot misinformation as you browse. Whether it’s a 
 - **Image Analysis 👁️:** Our enhanced deep learning model, powered by explainable AI (using Grad-CAM), detects deepfakes and highlights manipulated regions.
 - **Community Engagement 💬:** Join real-time discussions and view fact-checked comments via our built-in panel.
 - **Misinformation Scoring 📊:** Each statement is scored to indicate its reliability.
-
 
 ---
 
@@ -64,12 +70,13 @@ python app.py
 ```
 
 Now both servers are up and running!
+
 ---
 
 ## 🧩 Using the Extension
 
 1. Open **Google Chrome** and go to **Manage Extensions**.
-2. Click **Load Unpacked** and select the `frontend` folder.
+2. Click **Load Unpacked** and select the `extension/frontend` folder.
 3. Enjoy safer browsing and join the conversation!
 
 ---
