@@ -46,7 +46,7 @@ Follow these steps to launch the application:
 
 1. **Create a .env file with the following content**
 ```bash
-# Create a .env file and add the OPEN_AI and BRAVE_API keys. If you need the keys, please contact esvar2004@gmail.com.
+# Create a .env file and add the OPEN_AI and BRAVE_API keys. Ask a maintainer for the API keys.
 OPENAI_KEY = "ACTUAL OPENAI API KEY"
 BRAVE_API_KEY = "ACTUAL BRAVE API KEY"
 ``` 
@@ -56,7 +56,7 @@ BRAVE_API_KEY = "ACTUAL BRAVE API KEY"
 cd extension/backend
 node index.js
 
-#It'll prompt you for firebase_credentials.json, please contact esvar2004@gmail.com, then rerun the node command.
+#It'll prompt you for firebase_credentials.json, ask a maintainer for it, then rerun the node command.
 ```
 
 3. **Start the Deepfake Detection Server:**  
