@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="590" viewBox="0 0 960 590" role="img" aria-labelledby="title desc">
+<title id="title">Truth Fairy architecture</title>
+<desc id="desc">A Manifest V3 Chrome extension (content script, background service worker, popup) calls two local services. The Flask model server on port 5000 exposes /fact-check (GPT-4o-mini writes a search query, Brave Search returns sources, the publish date is looked up, GPT-4o-mini gives the verdict) and /predict (dlib face crop for video frames, Xception deepfake classifier in PyTorch, Grad-CAM heatmap). The Express backend on port 3000 stores flags, annotations and discussion threads in Firestore.</desc>
+<defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0 H0 V20" fill="none" stroke="#E6EAEE" stroke-width="1"/></pattern><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#57606A"/></marker><marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#C2410C"/></marker></defs>
+<rect x="0.5" y="0.5" width="959" height="589" rx="14" fill="#F6F8FA"/>
+<rect x="0.5" y="0.5" width="959" height="589" rx="14" fill="url(#grid)" stroke="#D0D7DE"/>
+<text x="24" y="36" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="15" fill="#0F766E" font-weight="700" letter-spacing="1.2">ARCHITECTURE · TRUTH FAIRY</text>
+<text x="936" y="36" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="15" fill="#57606A" letter-spacing="1" text-anchor="end">NTU TECHFEST</text>
+<path d="M18 52 H942" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="24" y="72" width="260" height="300" rx="10" fill="none" stroke="#0F766E" stroke-width="1.3" stroke-dasharray="6 4"/>
+<text x="36" y="360" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#0F766E" font-weight="700" letter-spacing="0.6">CHROME EXTENSION · MV3</text>
+<rect x="40" y="96" width="228" height="64" rx="6" fill="#FFFFFF" stroke="#57606A" stroke-width="1.3"/>
+<text x="154.0" y="125.0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#1F2328" font-weight="600" text-anchor="middle">contentScript.js</text>
+<text x="154.0" y="145.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="middle">ON EVERY PAGE</text>
+<rect x="40" y="184" width="228" height="64" rx="6" fill="#FFFFFF" stroke="#57606A" stroke-width="1.3"/>
+<text x="154.0" y="213.0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#1F2328" font-weight="600" text-anchor="middle">background.js</text>
+<text x="154.0" y="233.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="middle">FLAG RELAY</text>
+<rect x="40" y="272" width="228" height="64" rx="6" fill="#FFFFFF" stroke="#57606A" stroke-width="1.3"/>
+<text x="154.0" y="301.0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#1F2328" font-weight="600" text-anchor="middle">popup.html</text>
+<text x="154.0" y="321.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="middle">TOOLBAR POPUP</text>
+<path d="M268 128 H304 M268 216 H304 M304 128 V456" fill="none" stroke="#57606A" stroke-width="1.6"/>
+<text x="296" y="400" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="end">HTTP</text>
+<path d="M304 128 H338" fill="none" stroke="#57606A" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M304 216 H338" fill="none" stroke="#57606A" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M304 456 H338" fill="none" stroke="#57606A" stroke-width="1.6" marker-end="url(#ah)"/>
+<rect x="324" y="72" width="432" height="300" rx="10" fill="none" stroke="#0F766E" stroke-width="1.3" stroke-dasharray="6 4"/>
+<text x="336" y="360" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#0F766E" font-weight="700" letter-spacing="0.6">FLASK :5000 · models/app.py</text>
+<rect x="340" y="96" width="400" height="64" rx="6" fill="#FFFFFF" stroke="#57606A" stroke-width="1.3"/>
+<text x="540.0" y="125.0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#1F2328" font-weight="600" text-anchor="middle">POST /fact-check</text>
+<text x="540.0" y="145.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="middle">QUERY → SEARCH → PUBLISH DATE → VERDICT</text>
+<rect x="340" y="184" width="196" height="64" rx="6" fill="#FFFFFF" stroke="#57606A" stroke-width="1.3"/>
+<text x="438.0" y="213.0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#1F2328" font-weight="600" text-anchor="middle">POST /predict</text>
+<text x="438.0" y="233.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="middle">IMAGE OR VIDEO URL</text>
+<path d="M536 216 H542" fill="none" stroke="#57606A" stroke-width="1.6" marker-end="url(#ah)"/>
+<rect x="544" y="184" width="196" height="64" rx="6" fill="#FFFFFF" stroke="#57606A" stroke-width="1.3"/>
+<text x="642.0" y="213.0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#1F2328" font-weight="600" text-anchor="middle">dlib face crop</text>
+<text x="642.0" y="233.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="middle">VIDEO FRAMES ONLY</text>
+<path d="M642 248 V270" fill="none" stroke="#57606A" stroke-width="1.6" marker-end="url(#ah)"/>
+<rect x="544" y="272" width="196" height="64" rx="6" fill="#FFFFFF" stroke="#57606A" stroke-width="1.3"/>
+<text x="642.0" y="301.0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#1F2328" font-weight="600" text-anchor="middle">Xception</text>
+<text x="642.0" y="321.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="middle">PYTORCH · 2 CLASSES</text>
+<path d="M544 304 H538" fill="none" stroke="#57606A" stroke-width="1.6" marker-end="url(#ah)"/>
+<rect x="340" y="272" width="196" height="64" rx="6" fill="#E3F1EF" stroke="#0F766E" stroke-width="1.8"/>
+<text x="438.0" y="301.0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#1F2328" font-weight="600" text-anchor="middle">Grad-CAM heatmap</text>
+<text x="438.0" y="321.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="middle">IN THE RESPONSE</text>
+<path d="M740 116 H774" fill="none" stroke="#57606A" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M740 140 H760 V216 H774" fill="none" stroke="#57606A" stroke-width="1.6" marker-end="url(#ah)"/>
+<rect x="776" y="96" width="160" height="64" rx="6" fill="#FFFFFF" stroke="#57606A" stroke-width="1.3"/>
+<text x="856.0" y="125.0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#1F2328" font-weight="600" text-anchor="middle">OpenAI API</text>
+<text x="856.0" y="145.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="middle">gpt-4o-mini</text>
+<rect x="776" y="184" width="160" height="64" rx="6" fill="#FFFFFF" stroke="#57606A" stroke-width="1.3"/>
+<text x="856.0" y="213.0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#1F2328" font-weight="600" text-anchor="middle">Brave Search</text>
+<text x="856.0" y="233.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="middle">WEB RESULTS</text>
+<rect x="324" y="400" width="432" height="124" rx="10" fill="none" stroke="#0F766E" stroke-width="1.3" stroke-dasharray="6 4"/>
+<text x="336" y="512" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#0F766E" font-weight="700" letter-spacing="0.6">COMMUNITY BACKEND · extension/backend</text>
+<rect x="340" y="424" width="400" height="64" rx="6" fill="#FFFFFF" stroke="#57606A" stroke-width="1.3"/>
+<text x="540.0" y="453.0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#1F2328" font-weight="600" text-anchor="middle">Express API :3000</text>
+<text x="540.0" y="473.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="middle">FLAG · VERIFY · ANNOTATIONS · DISCUSSION</text>
+<path d="M740 456 H774" fill="none" stroke="#57606A" stroke-width="1.6" marker-end="url(#ah)"/>
+<rect x="776" y="424" width="160" height="64" rx="6" fill="#E3F1EF" stroke="#0F766E" stroke-width="1.8"/>
+<text x="856.0" y="453.0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#1F2328" font-weight="600" text-anchor="middle">Firestore</text>
+<text x="856.0" y="473.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#57606A" letter-spacing="0.6" text-anchor="middle">FIREBASE ADMIN</text>
+<rect x="606" y="546" width="330" height="28" fill="#F6F8FA" stroke="#57606A" stroke-width="1"/>
+<text x="771.0" y="564.86" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13.5" fill="#1F2328" font-weight="700" letter-spacing="0.8" text-anchor="middle">DRAWN FROM SOURCE · NOT TO SCALE</text>
+</svg>
